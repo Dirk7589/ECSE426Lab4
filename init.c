@@ -1,0 +1,132 @@
+/**
+*@file init.c
+*@author Dirk Dubois, Alain Slak
+*@date February 6th, 2013
+*@brief A set of functions that intialize the user button LEDs and temperature sensor.
+*
+*/
+
+/*Includes*/
+#include "init.h"
+#include "stm32f4xx.h"
+#include "stm32f4xx_conf.h"
+
+/**
+* @brief An intialization funtion for the IO Ports.
+* This function sets pins 12-15 as outputs on GPIOD to drive STM32FDiscovery boards LEDS.
+* It also sets pin 0 as input on GPIOA, with weak pull down, for active high user button
+* on STM32FDiscovery board.
+* @note In order for GPIO banks A & D to function correctly, their peripheral clocks are enabled.
+* @retval None
+*/
+void initIO(void)
+{
+	//RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE); //Enable peripheral clocks
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+	
+	GPIO_InitTypeDef gpio_init_leds;			//Create the intialization struct
+	GPIO_StructInit(&gpio_init_leds);			//Intialize the struct
+	
+	gpio_init_leds.GPIO_Pin	= GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15; //Setting all LEDs
+	gpio_init_leds.GPIO_Mode = GPIO_Mode_OUT; //Set as output
+	gpio_init_leds.GPIO_Speed = GPIO_Speed_100MHz; //Set at max slew rate
+	gpio_init_leds.GPIO_OType = GPIO_OType_PP; //Push Pull config
+	gpio_init_leds.GPIO_PuPd = GPIO_PuPd_NOPULL; //Turn off pull ups 
+	
+	GPIO_Init(GPIOD, &gpio_init_leds); //Intialize port
+	
+	GPIO_InitTypeDef gpio_init_button;			//Create the intialization struct
+	GPIO_StructInit(&gpio_init_button);			//Intialize the struct
+	
+	gpio_init_button.GPIO_Pin	= GPIO_Pin_0; //Set button input
+	gpio_init_button.GPIO_Mode = GPIO_Mode_IN; //Set as input
+	gpio_init_button.GPIO_Speed = GPIO_Speed_100MHz; //Set at max slew rate
+	gpio_init_button.GPIO_OType = GPIO_OType_PP; //Push Pull config
+	gpio_init_button.GPIO_PuPd = GPIO_PuPd_DOWN; //Turn pull up on low
+	
+	GPIO_Init(GPIOA, &gpio_init_button); //Intialize port
+	
+}
+
+/**
+* @brief An initialzation function for the ADC on channel 16 for built in temp sensor.
+* The following function initializes the ADC, without interupts, DMA, or continous scanning,
+* for use with the built in temperature sensor on ADC channel 16. The data is right aligned, and
+* the resolution is set to 12 bits. 
+* @note In order for the ADC to function correctly, its peripheral clock is enabled.
+* @note To use the built in temperature sensor ADC_TempSensorVrefintCmd must be set to ENABLE.
+* @retval None 
+*/
+void initTempADC(void)
+{
+	//Create ADC structs
+	ADC_InitTypeDef	adc_init_s;
+	ADC_CommonInitTypeDef adc_common_init_s;
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE); //Turn on peripheral clock
+	
+	//Set common ADC behavior
+	adc_common_init_s.ADC_Mode = ADC_Mode_Independent;
+	adc_common_init_s.ADC_Prescaler = ADC_Prescaler_Div2;
+	adc_common_init_s.ADC_DMAAccessMode = ADC_DMAAccessMode_Disabled;
+	adc_common_init_s.ADC_TwoSamplingDelay = ADC_TwoSamplingDelay_5Cycles;
+	
+	ADC_CommonInit(&adc_common_init_s); //Initialize common settings
+	
+	//Specify ADC1 behaviour
+	adc_init_s.ADC_Resolution = ADC_Resolution_12b;
+	adc_init_s.ADC_ScanConvMode = DISABLE;
+	adc_init_s.ADC_ContinuousConvMode = DISABLE;
+	adc_init_s.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+	adc_init_s.ADC_DataAlign = ADC_DataAlign_Right;
+	adc_init_s.ADC_NbrOfConversion = 1;
+	ADC_Init(ADC1, &adc_init_s);
+	
+	ADC_Cmd(ADC1, ENABLE); //Enable ADC1
+	
+	ADC_TempSensorVrefintCmd(ENABLE); //Enable the connections to the temp sensor
+	
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_TempSensor, 1, ADC_SampleTime_480Cycles); //Cofigure the ADC Channel
+	
+}
+
+/**
+*@brief A function that intilizes Timer3 for use with the acclerometer
+*The timer will trip an interupt every 10 ms for a rate of 100Hz. This function
+*enables the NVIC and sets TIM3 to a subpriority of 0 with a preemption priority of 0.
+*@retval None
+*/
+void initTim3(void)
+{
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);//Enable APB1 peripheral clock for TIM3
+	
+	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
+	
+	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStruct; //Create TIM base struct
+	
+	TIM_TimeBaseStructInit(&TIM_TimeBaseInitStruct); //Intialize the struct
+	
+	//Configure Timer for 100Hz
+	TIM_TimeBaseInitStruct.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBaseInitStruct.TIM_CounterMode = TIM_CounterMode_Down; 	//Setup countdown mode
+	TIM_TimeBaseInitStruct.TIM_Period = (uint16_t)PERIOD;						//Set Period given in init.h
+	TIM_TimeBaseInitStruct.TIM_Prescaler = (uint16_t)PRESCALER;			//Set Prescaler given in init.h
+	TIM_TimeBaseInitStruct.TIM_RepetitionCounter = 0;
+
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStruct); //Initalize the timer
+	
+	//Enable the NVIC if needed
+	NVIC_Struct.NVIC_IRQChannel = TIM3_IRQn; //Select timer 3 interupt
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
+	NVIC_Struct.NVIC_IRQChannelSubPriority =0; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
+	
+	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct
+	
+	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE); //Enable the corresponding NVIC interupt
+	
+	TIM_Cmd(TIM3, ENABLE); //Enable the timer
+	
+}
+
+
