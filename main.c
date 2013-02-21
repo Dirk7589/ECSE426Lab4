@@ -1,7 +1,22 @@
-#include "arm_math.h"
+/**
+*@file main.c
+*@author Dirk Dubois, Alain Slak
+*@date February 21th, 2013
+*@brief 
+*
+*/
 
+/*Includes*/
+#include "arm_math.h"
 #include "stm32f4xx.h"
 #include "cmsis_os.h"
+#include "init.h"
+#include "initACC.h"
+#include "moving_average.h"
+#include <stdint.h>
+
+/*Global Variables*/
+uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
 
 /*!
  @brief Thread to perform menial tasks such as switching LEDs
@@ -18,16 +33,12 @@ osThreadDef(thread, osPriorityNormal, 1, 0);
 int main (void) {
 	// ID for thread
 	osThreadId tid_thread1;
-	GPIO_InitTypeDef  GPIO_InitStructure;
-
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOD, &GPIO_InitStructure);
+	
+	initIO();
+	initTempADC();
+	initTIM3();
+	initACC();
+	initEXTIACC();
 
 	// Start thread
 	tid_thread1 = osThreadCreate(osThread(thread), NULL);
@@ -45,4 +56,14 @@ void thread (void const *argument) {
 		osDelay(1000);
 		GPIOD->BSRRH = GPIO_Pin_12;
 	}
+}
+
+/**
+*@brief An interrupt handler for TIM3
+*@retval None
+*/
+void EXTI0_IRQHandler(void)
+{
+	tapState = 1 - tapState;	//Change the current tap state
+	EXTI_ClearITPendingBit(EXTI_Line0);	//Clear the EXTI0 interrupt flag
 }
