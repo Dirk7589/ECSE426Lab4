@@ -126,7 +126,6 @@ void initTim3(void)
 	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE); //Enable the corresponding NVIC interupt
 	
 	TIM_Cmd(TIM3, ENABLE); //Enable the timer
-	
 }
 
 /**
@@ -138,8 +137,28 @@ void initDMAACC(void)
 	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA2, ENABLE); //Enable peripheral clock for DMA2
 	
 	DMA_InitTypeDef DMA_InitStruct; //Create DMA init struct
+	DMA_StructInit(&DMA_InitStruct); //Prepare the structure
 	
-	DMA_Stream_TypeDef DMAy_Streamx; //
+	DMA_InitStruct.DMA_Channel = 0;
+	DMA_InitStruct.DMA_PeripheralBaseAddr = 0;
+	DMA_InitStruct.DMA_Memory0BaseAddr = 0;
+	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralToMemory;
+	DMA_InitStruct.DMA_BufferSize = 0;
+	DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Disable;
+	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
+	DMA_InitStruct.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
+	DMA_InitStruct.DMA_Mode = DMA_Mode_Normal;
+	DMA_InitStruct.DMA_Priority = DMA_Priority_Medium;
+	DMA_InitStruct.DMA_FIFOMode = DMA_FIFOMode_Disable;
+	DMA_InitStruct.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+	DMA_InitStruct.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+	DMA_InitStruct.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+	
+	DMA_Init(DMA2_Stream0, &DMA_InitStruct); //Intialize the structure
+	
+	
+	
 	
 	
 	
