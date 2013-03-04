@@ -43,7 +43,7 @@ int main (void) {
 	
 	initIO();
 	initTempADC();
-	initTIM3();
+	initTim3();
 	initACC();
 	initEXTIACC();
 
