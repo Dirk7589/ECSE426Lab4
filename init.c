@@ -135,6 +135,13 @@ void initTim3(void)
 */
 void initDMAACC(void)
 {
-	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA1, ENABLE);
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA2, ENABLE); //Enable peripheral clock for DMA2
+	
+	DMA_InitTypeDef DMA_InitStruct; //Create DMA init struct
+	
+	DMA_Stream_TypeDef DMAy_Streamx; //
+	
+	
+	
 }
 
