@@ -129,4 +129,12 @@ void initTim3(void)
 	
 }
 
+/**
+*@brief A function that intializes DMA for use with the accelerometer.
+*@retval None
+*/
+void initDMAACC(void)
+{
+	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA1, ENABLE);
+}
 

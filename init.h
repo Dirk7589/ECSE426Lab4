@@ -49,5 +49,10 @@ void initTempADC(void);
 */
 void initTim3(void);
 
+/**
+*@brief A function that intializes DMA for use with the accelerometer.
+*@retval None
+*/
+void initDMAACC(void);
 
 #endif
