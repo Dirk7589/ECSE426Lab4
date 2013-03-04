@@ -1,11 +1,3 @@
-/**
-*@file toDegreeC.h
-*@author Dirk Dubois, Alain Slak
-*@date February 5th, 2013
-*@brief A function that converts the adc value of the temperature sensor to celcius
-*
-*/
-
 /*Defines*/
 /**@defgroup Temperature_Scalers
 * @{
@@ -33,9 +25,19 @@
 * @note The value for avg_slope is 2.5mV/C and v25 is 0.76V
 * @warning vSense is internally converted to a value in miliVolts. Be sure to set SCALE to the appropriate value.
 */
-float toDegreeC(uint16_t vSense)
-{
-	vSense = vSense * SCALE; //Convert from bits to miliVolts
-	float temperature = (((vSense - V25) * AVG_SLOPE_INVERSE ) + 25 ); //Apply formula to convert to temperature
-	return temperature;
-}
+float toDegreeC(uint16_t vSense);
+
+/**
+*@brief wrap around display for temperature readings. 
+*2 degree increments starting at 30C
+*@param[in] temperature The temperature to be displayed
+*@retval None
+*/
+void displayTemperature(float temperature);
+
+/**
+*@brief A function that toggles the discovery board's leds 
+*@retval None 
+*@note The uint8_t LEDState is a global variable that determines the current state of the leds.
+*/
+void LEDToggle(void);
