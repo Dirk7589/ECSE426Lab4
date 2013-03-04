@@ -179,3 +179,24 @@ void initEXTIACC(void)
 	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct//Configure the NVIC for use with EXTI
 
 }
+
+/**
+*@brief A function that displays the dominant angle of the board.
+*@param[in] accCorrectedValues The calibrated and filtered values from the accelerometer
+*@retval None
+*/
+void displayDominantAngle(float* accCorrectedValues)
+{
+	
+}
+
+/**
+*@brief A function that displays the direction of the board movement
+*@param[in] accCorrectValues The calibrated and filtered values from the accelerometer
+*@retval None
+*/
+void displayBoardMovement(float* accCorrectedValues)
+{
+	
+}
+

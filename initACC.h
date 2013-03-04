@@ -50,4 +50,19 @@ void calibrateACC(int32_t* accValues, float* accCorrectedValues);
 *@warning This function can only be called after initACC().
 */
 void initEXTIACC(void);
+
+/**
+*@brief A function that displays the dominant angle of the board.
+*@param[in] accCorrectedValues The calibrated and filtered values from the accelerometer
+*@retval None
+*/
+void displayDominantAngle();
+
+/**
+*@brief A function that displays the direction of the board movement
+*@param[in] accCorrectValues The calibrated and filtered values from the accelerometer
+*@retval None
+*/
+void displayBoardMovement(float* accCorrectedValues);
+
 #endif
