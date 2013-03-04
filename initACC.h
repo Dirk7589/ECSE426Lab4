@@ -56,7 +56,7 @@ void initEXTIACC(void);
 *@param[in] accCorrectedValues The calibrated and filtered values from the accelerometer
 *@retval None
 */
-void displayDominantAngle();
+void displayDominantAngle(float* accCorrectedValues);
 
 /**
 *@brief A function that displays the direction of the board movement
