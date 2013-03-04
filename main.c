@@ -17,6 +17,13 @@
 
 /*Global Variables*/
 uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
+uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
+uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
+uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
+uint8_t LEDState = 0; /**<A variable that sets the led state*/
+
+/*Defines */
+#define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
 
 /*!
  @brief Thread to perform menial tasks such as switching LEDs
@@ -59,7 +66,7 @@ void thread (void const *argument) {
 }
 
 /**
-*@brief An interrupt handler for TIM3
+*@brief An interrupt handler for EXTI0
 *@retval None
 */
 void EXTI0_IRQHandler(void)
@@ -67,3 +74,15 @@ void EXTI0_IRQHandler(void)
 	tapState = 1 - tapState;	//Change the current tap state
 	EXTI_ClearITPendingBit(EXTI_Line0);	//Clear the EXTI0 interrupt flag
 }
+
+/**
+*@brief An interrupt handler for Tim3
+*@retval None
+*/
+void TIM3_IRQHandler(void)
+{
+	sampleACCFlag = 1;													//Set flag for accelerometer sampling
+	sampleTempCounter++;												//Set flag for temperature sampling
+	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
+}
+
