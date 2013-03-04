@@ -136,6 +136,7 @@
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
+            <RestoreTracepoints>0</RestoreTracepoints>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
           <TargetSelection>13</TargetSelection>
@@ -429,6 +430,46 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../main.c</FilePath>
+            </File>
+            <File>
+              <FileName>fputc_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\fputc_debug.c</FilePath>
+            </File>
+            <File>
+              <FileName>init.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\init.c</FilePath>
+            </File>
+            <File>
+              <FileName>initACC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\initACC.c</FilePath>
+            </File>
+            <File>
+              <FileName>moving_average.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\moving_average.c</FilePath>
+            </File>
+            <File>
+              <FileName>init.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\init.h</FilePath>
+            </File>
+            <File>
+              <FileName>initACC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\initACC.h</FilePath>
+            </File>
+            <File>
+              <FileName>moving_average.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\moving_average.h</FilePath>
+            </File>
+            <File>
+              <FileName>toDegreeC.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\toDegreeC.h</FilePath>
             </File>
           </Files>
         </Group>
