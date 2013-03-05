@@ -21,6 +21,7 @@ uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
 uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
+uint8_t sampleTempFlag = 0;
 uint8_t LEDState = 0; /**<A variable that sets the led state*/
 
 /*Defines */
@@ -73,26 +74,35 @@ void temperatureThread(void const *argument){
 		if(GPIOA->IDR & USER_BTN){
 			buttonState = 1 - buttonState; //toggle button state
 			
-			//ADD CODE FOR DEBOUNCING HERE!!!! (DELAY)
+			//debounce delay
+			osDelay(300);
 			
 			switch(buttonState){
 				case 0:
-					//need to put in some kind of delay here!!!!
+					//toggle delay
+					osDelay(500);
+				
+					//toggle LEDs
 					LEDState = LEDToggle(LEDState);
+				
 					break;
 				
 				case 1:
-					GPIOD->ODR = 0; //Turn off the LEDs
-					ADC_SoftwareStartConv(ADC1); //Start conversion
-					while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
-					ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear flag
+					//check sample flag. This ensures the proper 20Hz sampling rate
+					if(sampleTempFlag == 1){
+						sampleTempFlag = 0; //reset the flag
+						GPIOD->ODR = 0; //Turn off the LEDs
+						ADC_SoftwareStartConv(ADC1); //Start conversion
+						while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
+						ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear flag
+					
+						adcValue = ADC1->DR; //Retrieve ADC value in bits
+						temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
+						temperature = movingAverage(temperature, &temperatureData);
+						displayTemperature(temperature);
+					}
 				
-					adcValue = ADC1->DR; //Retrieve ADC value in bits
-					temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
-					temperature = movingAverage(temperature, &temperatureData);
-					displayTemperature(temperature);
-				
-					//need to implement a delay to get 20Hz sampling rate!!!!
+					break;
 			}
 		}
 	}	
@@ -124,7 +134,17 @@ void EXTI0_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	sampleACCFlag = 1;													//Set flag for accelerometer sampling
-	sampleTempCounter++;												//Set flag for temperature sampling
+	
+	if(sampleTempFlag == 0){
+		if(sampleTempCounter == 5){
+			sampleTempFlag = 1;
+			sampleTempCounter = 0;
+		}
+		else{
+			sampleTempCounter++;												//Set flag for temperature sampling
+		}
+	}
+	
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
 }
 
