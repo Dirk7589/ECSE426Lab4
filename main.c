@@ -18,11 +18,9 @@
 
 /*Global Variables*/
 uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
-uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 uint8_t sampleTempFlag = 0;
-uint8_t LEDState = 0; /**<A variable that sets the led state*/
 
 /*Defines */
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
@@ -62,8 +60,8 @@ int main (void) {
 void temperatureThread(void const *argument){
 	uint16_t adcValue = 0;
 	float temperature = 0;
-	uint8_t buttonState = 0;
-	uint8_t LEDState = 0;
+	uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
+	uint8_t LEDState = 0; /**<A variable that sets the led state*/
 	
 	AVERAGE_DATA_TYPEDEF temperatureData;
 	
@@ -91,17 +89,20 @@ void temperatureThread(void const *argument){
 					//check sample flag. This ensures the proper 20Hz sampling rate
 					if(sampleTempFlag == 1){
 						sampleTempFlag = 0; //reset the flag
+						
 						GPIOD->ODR = 0; //Turn off the LEDs
+						
 						ADC_SoftwareStartConv(ADC1); //Start conversion
+						
 						while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
 						ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear flag
 					
 						adcValue = ADC1->DR; //Retrieve ADC value in bits
+						
 						temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
 						temperature = movingAverage(temperature, &temperatureData);
 						displayTemperature(temperature);
 					}
-				
 					break;
 			}
 		}
