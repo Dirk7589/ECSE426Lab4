@@ -13,6 +13,7 @@
 #include "init.h"
 #include "initACC.h"
 #include "moving_average.h"
+#include "temp.h"
 #include <stdint.h>
 
 /*Global Variables*/
@@ -24,22 +25,23 @@ uint8_t LEDState = 0; /**<A variable that sets the led state*/
 
 /*Defines */
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
+#define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
 
 /*!
  @brief Thread to perform menial tasks such as switching LEDs
  @param argument Unused
  */
-void thread(void const * argument);
+void temperatureThread(void const * argument);
 
 //! Thread structure for above thread
-osThreadDef(thread, osPriorityNormal, 1, 0);
+osThreadDef(temperatureThread, osPriorityNormal, 1, 0);
 
 /*!
  @brief Program entry point
  */
 int main (void) {
 	// ID for thread
-	osThreadId tid_thread1;
+	osThreadId tThread;
 	
 	initIO();
 	initTempADC();
@@ -48,12 +50,52 @@ int main (void) {
 	initEXTIACC();
 
 	// Start thread
-	tid_thread1 = osThreadCreate(osThread(thread), NULL);
+	tThread = osThreadCreate(osThread(temperatureThread), NULL);
 
 	// The below doesn't really need to be in a loop
 	while(1){
 		osDelay(osWaitForever);
 	}
+}
+
+void temperatureThread(void const *argument){
+	uint16_t adcValue = 0;
+	float temperature = 0;
+	uint8_t buttonState = 0;
+	uint8_t LEDState = 0;
+	
+	AVERAGE_DATA_TYPEDEF temperatureData;
+	
+	movingAverageInit(&temperatureData);
+	
+	while(1){
+		//check current state of button
+		if(GPIOA->IDR & USER_BTN){
+			buttonState = 1 - buttonState; //toggle button state
+			
+			//ADD CODE FOR DEBOUNCING HERE!!!! (DELAY)
+			
+			switch(buttonState){
+				case 0:
+					//need to put in some kind of delay here!!!!
+					LEDState = LEDToggle(LEDState);
+					break;
+				
+				case 1:
+					GPIOD->ODR = 0; //Turn off the LEDs
+					ADC_SoftwareStartConv(ADC1); //Start conversion
+					while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
+					ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear flag
+				
+					adcValue = ADC1->DR; //Retrieve ADC value in bits
+					temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
+					temperature = movingAverage(temperature, &temperatureData);
+					displayTemperature(temperature);
+				
+					//need to implement a delay to get 20Hz sampling rate!!!!
+			}
+		}
+	}	
 }
 
 void thread (void const *argument) {
