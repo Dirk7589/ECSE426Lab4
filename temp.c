@@ -1,3 +1,5 @@
+#include "temp.h"
+
 void displayTemperature(float temperature){
     if(temperature < 30){
         GPIOD->ODR =0;
@@ -33,7 +35,7 @@ void displayTemperature(float temperature){
     }
 }
 
-void LEDToggle(void){
+uint8_t LEDToggle(uint8_t LEDState){
     if(!LEDState){
         LEDState = 1; //update state
         //Turn on LEDs
@@ -46,6 +48,8 @@ void LEDToggle(void){
         LEDState = 0; //update state
         GPIOD->ODR = 1; //Turn off leds
     }
+		
+		return LEDState;
 }
 
 float toDegreeC(uint16_t vSense)
