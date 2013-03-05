@@ -1,3 +1,6 @@
+#include "stm32f4xx.h"
+#include <math.h>
+
 /*Defines*/
 /**@defgroup Temperature_Scalers
 * @{
@@ -10,6 +13,11 @@
 #define V25 760 /**< V25 defines the voltage at 25 degrees C*/
 
 #define SCALE 0.7324 /**< SCALE defines the conversion factor from bits to miliVolts. */
+
+#define GREEN_LED 0x1000 /*!<Defines the bit location of the green LED*/
+#define ORANGE_LED 0x2000 /**< Defines the bit location of the orange LED*/
+#define RED_LED 0x4000 /**< Defines the bit location of the red LED*/
+#define BLUE_LED 0x8000	/**< Defines the bit location of the blue LED*/
 
 /**
   * @}
@@ -40,4 +48,4 @@ void displayTemperature(float temperature);
 *@retval None 
 *@note The uint8_t LEDState is a global variable that determines the current state of the leds.
 */
-void LEDToggle(void);
+uint8_t LEDToggle(uint8_t LEDState);
