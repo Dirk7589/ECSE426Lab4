@@ -44,8 +44,8 @@ float toDegreeC(uint16_t vSense);
 void displayTemperature(float temperature);
 
 /**
-*@brief A function that toggles the discovery board's leds 
-*@retval None 
-*@note The uint8_t LEDState is a global variable that determines the current state of the leds.
+*@brief A function that toggles the LEDs
+*@param[in] LEDState current state of the LEDs
+*@retval The current LEDState
 */
 uint8_t LEDToggle(uint8_t LEDState);
