@@ -140,12 +140,12 @@ void initDMAACC(void)
 	DMA_StructInit(&DMA_InitStruct); //Prepare the structure
 	
 	DMA_InitStruct.DMA_Channel = 0;
-	DMA_InitStruct.DMA_PeripheralBaseAddr = 0;
-	DMA_InitStruct.DMA_Memory0BaseAddr = 0;
+	DMA_InitStruct.DMA_PeripheralBaseAddr = 0; //Must be a uint32
+	DMA_InitStruct.DMA_Memory0BaseAddr = 0; //Variable where the data will be stored
 	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralToMemory;
 	DMA_InitStruct.DMA_BufferSize = 0;
 	DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Disable;
+	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
 	DMA_InitStruct.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
 	DMA_InitStruct.DMA_Mode = DMA_Mode_Normal;
@@ -156,11 +156,38 @@ void initDMAACC(void)
 	DMA_InitStruct.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 	
 	DMA_Init(DMA2_Stream0, &DMA_InitStruct); //Intialize the structure
+
 	
+}
+
+/**
+*@brief A function that enables EXTI for the button
+*@retval None
+*/
+void initEXTIButton(void)
+{
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE); //Enable peripheral clock for EXTI
 	
+	//Setup interupts
+	EXTI_InitTypeDef exti_init;
+
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource0);	//Select pin to interupt from
 	
+	exti_init.EXTI_Line = EXTI_Line1; //Select line 1
+	exti_init.EXTI_LineCmd = ENABLE; //Enable
+	exti_init.EXTI_Mode = EXTI_Mode_Interrupt; //Interupt mode
+	exti_init.EXTI_Trigger = EXTI_Trigger_Rising; //Rising edge trigger
 	
+	EXTI_Init(&exti_init);	//Configure the interupt mode
+
+	//Enable the NVIC if needed
+	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
 	
+	NVIC_Struct.NVIC_IRQChannel = EXTI1_IRQn; //Select EXTI0
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
+	NVIC_Struct.NVIC_IRQChannelSubPriority = BUTTON_PRIORITY; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
 	
+	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct//Configure the NVIC for use with EXTI
 }
 
