@@ -11,7 +11,7 @@
 
 /*Defines*/
 #define CONVERSION_TO_DEG 57.29577951308233 /**<The scalling factor from radians to degrees*/
-
+#define ANGLE_THRESHOLD 30 /**<Threshold angle for displayDominant angle*/
 /*Structs*/
 
 
@@ -55,6 +55,7 @@ void initEXTIACC(void);
 *@brief A function that displays the dominant angle of the board.
 *@param[in] accCorrectedValues The calibrated and filtered values from the accelerometer
 *@retval None
+*@note ANGLE_THRESHOLD must be set to a value greater than 0
 */
 void displayDominantAngle(float* accCorrectedValues);
 

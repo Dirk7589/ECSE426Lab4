@@ -7,6 +7,13 @@
 #include "initACC.h"
 #include "stm32f4_discovery_lis302dl.h"
 
+/*Defines*/
+#define GREEN_LED 0x1000 /*!<Defines the bit location of the green LED*/
+#define ORANGE_LED 0x2000 /**< Defines the bit location of the orange LED*/
+#define ORANGE_LED_OFF 0x1FFF
+#define RED_LED 0x4000 /**< Defines the bit location of the red LED*/
+#define BLUE_LED 0x8000	/**< Defines the bit location of the blue LED*/
+
 /*Global Variables*/
 
 float ZOffset = 29.02; 
@@ -21,6 +28,7 @@ float XOffset = 11.26;
 float XSensitivityPos = 0.9889;
 float XSensitivityNeg = 1.0114;
 
+float angles[2]; /**<A variable containing the pitch and roll */
 
 /*Includes*/
 #include <math.h>
@@ -187,7 +195,16 @@ void initEXTIACC(void)
 */
 void displayDominantAngle(float* accCorrectedValues)
 {
+	toAngle(accCorrectedValues, angles); //Convert to pitch and roll
 	
+	if(angles[0] > 0 && angles[0] > ANGLE_THRESHOLD){
+		//GPIOD->BSRRL = ~BLUE_LED; //Turn off other LED
+		GPIOD->BSRRL = ORANGE_LED; //Roll to the right
+	}
+	if(angles[0] < 0 && angles[0] < -ANGLE_THRESHOLD){
+		//GPIOD->BSRRL = ORANGE_LED; //Turn off LED
+		GPIOD->BSRRL = BLUE_LED; //Roll to the left
+	}
 }
 
 /**
