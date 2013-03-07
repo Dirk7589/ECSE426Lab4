@@ -15,7 +15,7 @@
 */
 #define PRESCALER 41999 /**<A prescaler value for TIM3*/
 #define PERIOD 19 /**<A period value for TIM3*/
-#define BUTTON_PRIORITY 3 /**<Subpriority for NVIC*/
+#define BUTTON_PRIORITY 2 /**<Subpriority for NVIC*/
 /**
 *@}
 */
