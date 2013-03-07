@@ -28,7 +28,7 @@
 uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
-uint8_t sampleTempFlag = 0;
+int32_t sampleTempFlag = 0x0000;
 uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
 
 //Data Variables decleration
@@ -212,15 +212,14 @@ void TIM3_IRQHandler(void)
 {
 	sampleACCFlag = 1;													//Set flag for accelerometer sampling
 	
-	if(sampleTempFlag == 0){
-		if(sampleTempCounter == 5){
-			osSignalSet(tThread, sampleTempFlag);
-			sampleTempCounter = 0;
-		}
-		else{
-			sampleTempCounter++;												//Set flag for temperature sampling
-		}
+	if(sampleTempCounter == 5){
+		osSignalSet(tThread, sampleTempFlag);
+		sampleTempCounter = 0;
 	}
+	else{
+		sampleTempCounter++;												//Set flag for temperature sampling
+	}
+	
 	
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
 }
