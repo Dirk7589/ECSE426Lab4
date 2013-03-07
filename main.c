@@ -83,7 +83,7 @@ int main (void) {
 	initTim3(); //Enable Tim3 at 100Hz
 	initACC(); //Enable the accelerometer
 	initEXTIACC(); //Enable tap interrupts via exti0
-	initEXTIButton(); //Enable button interrupts via exti1
+	//initEXTIButton(); //Enable button interrupts via exti1
 	
 	// Start thread
 	//tThread = osThreadCreate(osThread(temperatureThread), NULL);
@@ -218,8 +218,8 @@ void EXTI0_IRQHandler(void)
 */
 void EXTI1_IRQHandler(void)
 {
-	buttonState = 1 - buttonState;	//Change the current tap state
-	EXTI_ClearITPendingBit(EXTI_Line1);	//Clear the EXTI0 interrupt flag
+	//buttonState = 1 - buttonState;	//Change the current tap state
+	//EXTI_ClearITPendingBit(EXTI_Line1);	//Clear the EXTI0 interrupt flag
 }
 
 /**
@@ -237,8 +237,7 @@ void TIM3_IRQHandler(void)
 	else{
 		sampleTempCounter++;												//Set flag for temperature sampling
 	}
-	
-	
+		
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
 }
 
