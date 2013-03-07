@@ -179,8 +179,8 @@ void initEXTIACC(void)
 	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
 	
 	NVIC_Struct.NVIC_IRQChannel = EXTI0_IRQn; //Select EXTI0
-	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
-	NVIC_Struct.NVIC_IRQChannelSubPriority = 1; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1; //Set preemption priority
+	NVIC_Struct.NVIC_IRQChannelSubPriority = 0; //Set sub prioirity
 	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
 	
 	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct//Configure the NVIC for use with EXTI
@@ -197,21 +197,35 @@ void displayDominantAngle(float* accCorrectedValues)
 	toAngle(accCorrectedValues, angles); //Convert to pitch and roll
 	
 	if(angles[0] > 0 && angles[0] > ANGLE_THRESHOLD){
-		GPIOD->BSRRH = BLUE_LED; //Turn off other LED
+		//GPIOD->BSRRH = BLUE_LED; //Turn off other LED
 		GPIOD->BSRRL = ORANGE_LED; //Roll to the right
 	}
+	else{
+		GPIOD->BSRRH = ORANGE_LED;
+	}
+	
 	if(angles[0] < 0 && angles[0] < -ANGLE_THRESHOLD){
-		GPIOD->BSRRH = ORANGE_LED; //Turn off LED
+		//GPIOD->BSRRH = ORANGE_LED; //Turn off LED
 		GPIOD->BSRRL = BLUE_LED; //Roll to the left
+	}
+	else{
+		GPIOD->BSRRH = BLUE_LED;
 	}
 	
 	if(angles[1] > 0 && angles[1] > ANGLE_THRESHOLD){
-		GPIOD->BSRRH = RED_LED; //Turn off other LED
+		//GPIOD->BSRRH = RED_LED; //Turn off other LED
 		GPIOD->BSRRL = GREEN_LED; //Pitch forward
 	}
+	else{
+		GPIOD->BSRRH = GREEN_LED;
+	}
+	
 	if(angles[1] < 0 && angles[1] < -ANGLE_THRESHOLD){
-		GPIOD->BSRRH = GREEN_LED; //Turn off LED
+		//GPIOD->BSRRH = GREEN_LED; //Turn off LED
 		GPIOD->BSRRL = RED_LED; //Pitch backwards
+	}
+	else{
+		GPIOD->BSRRH = RED_LED;
 	}
 }
 
@@ -220,8 +234,47 @@ void displayDominantAngle(float* accCorrectedValues)
 *@param[in] accCorrectValues The calibrated and filtered values from the accelerometer
 *@retval None
 */
-void displayBoardMovement(float* accCorrectedValues)
+void displayBoardMovement(float* accCorrectedValues, float* previousValues, float* accelerationTotals)
 {
+	//accelerationTotals[0] = accelerationTotals[0] + accCorrectedValues[0] - previousValues[0];
+	//accelerationTotals[1] = accelerationTotals[1] + accCorrectedValues[1] - previousValues[1];
+	
+	accelerationTotals[0] = accCorrectedValues[0] - previousValues[0];
+	accelerationTotals[1] = accCorrectedValues[1] - previousValues[1];
+	
+	previousValues[0] = accCorrectedValues[0];
+	previousValues[1] = accCorrectedValues[1];
+	
+	printf("x-value: %f\n", accelerationTotals[0]); 
+	printf("y-value: %f\n", accelerationTotals[1]); 
+	
+	if(accelerationTotals[0] > MOVEMENT_THRESHOLD){
+		GPIOD->BSRRL = BLUE_LED; //Moving in positive x direction
+	}
+	else{
+		GPIOD->BSRRH = BLUE_LED;
+	}
+	
+	if(accelerationTotals[0] < -MOVEMENT_THRESHOLD){
+		GPIOD->BSRRL = ORANGE_LED; //Moving in negative x direction
+	}
+	else{
+		GPIOD->BSRRH = ORANGE_LED;
+	}
+	
+	if(accelerationTotals[1] > MOVEMENT_THRESHOLD){
+		GPIOD->BSRRL = GREEN_LED; //Moving in positive y direction
+	}
+	else{
+		GPIOD->BSRRH = GREEN_LED;
+	}
+	
+	if(accelerationTotals[1] < -MOVEMENT_THRESHOLD){
+		GPIOD->BSRRL = RED_LED; //Moving in negative y direction
+	}
+	else{
+		GPIOD->BSRRH = RED_LED;
+	}
 	
 }
 

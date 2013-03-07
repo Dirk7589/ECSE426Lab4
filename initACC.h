@@ -11,7 +11,8 @@
 
 /*Defines*/
 #define CONVERSION_TO_DEG 57.29577951308233 /**<The scalling factor from radians to degrees*/
-#define ANGLE_THRESHOLD 30 /**<Threshold angle for displayDominant angle*/
+#define ANGLE_THRESHOLD 20 /**<Threshold angle for displayDominant angle*/
+#define MOVEMENT_THRESHOLD 100 /**<Threshold acceleration for displayBoardMovement*/
 /*Structs*/
 
 
@@ -64,6 +65,6 @@ void displayDominantAngle(float* accCorrectedValues);
 *@param[in] accCorrectValues The calibrated and filtered values from the accelerometer
 *@retval None
 */
-void displayBoardMovement(float* accCorrectedValues);
+void displayBoardMovement(float* accCorrectedValues, float* previousValues, float* accelerationTotals);
 
 #endif
