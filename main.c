@@ -7,6 +7,7 @@
 */
 
 /*Includes*/
+#include <stdint.h>
 #include "arm_math.h"
 #include "stm32f4xx.h"
 #include "cmsis_os.h"
@@ -14,7 +15,7 @@
 #include "initACC.h"
 #include "moving_average.h"
 #include "temp.h"
-#include <stdint.h>
+
 
 /*Global Variables*/
 uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
@@ -22,6 +23,11 @@ uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a val
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 uint8_t sampleTempFlag = 0;
 uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
+
+extern float temperature; /**<The temperature variable*/
+int32_t accValues[3]; //To retrieve the accelerometer values
+float accCorrectedValues[3]; //To values
+float angles[2]; /**<A variable containing the pitch and roll */
 
 /*Defines */
 #define DEBUG 1
@@ -58,7 +64,7 @@ int main (void) {
 	initTempADC();
 	initTim3();
 	initACC();
-	//initEXTIACC();
+	initEXTIACC();
 
 	// Start thread
 	//tThread = osThreadCreate(osThread(temperatureThread), NULL);
@@ -71,8 +77,8 @@ int main (void) {
 }
 
 void temperatureThread(void const *argument){
+	
 	uint16_t adcValue = 0;
-	float temperature = 0;
 	uint8_t LEDState = 0; /**<A variable that sets the led state*/
 	
 	AVERAGE_DATA_TYPEDEF temperatureData; //Create temperature data structure
@@ -126,10 +132,7 @@ void temperatureThread(void const *argument){
 }	
 
 void accelerometerThread(void const * argument){
-	
-	int32_t accValues[3]; //To retrieve the accelerometer values
-	float accCorrectedValues[3]; //To values
-	
+
 	//Create structures for moving average filter
 	AVERAGE_DATA_TYPEDEF dataX;
 	AVERAGE_DATA_TYPEDEF dataY;
