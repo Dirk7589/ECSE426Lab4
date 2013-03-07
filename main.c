@@ -49,6 +49,7 @@ osSemaphoreId accId;
 *@retval None
 */
 void displayUI(void);
+
 /*!
  @brief Thread to perform the temperature data processing
  @param argument Unused
@@ -79,77 +80,51 @@ int main (void) {
 	tempId = osSemaphoreCreate(osSemaphore(temperature), 1);
 	accId = osSemaphoreCreate(osSemaphore(accCorrectedValues), 1);
 	
-	initIO();
-	initEXTIButton();
-	initTempADC();
-	initTim3();
-	initACC();
-	initEXTIACC();
-
+	initIO(); //Enable LEDs and button
+	initTempADC(); //Enable ADC for temp sensor
+	initTim3(); //Enable Tim3 at 100Hz
+	initACC(); //Enable the accelerometer
+	initEXTIACC(); //Enable tap interrupts via exti0
+	initEXTIButton(); //Enable button interrupts via exti1
+	
 	// Start thread
 	//tThread = osThreadCreate(osThread(temperatureThread), NULL);
 	aThread = osThreadCreate(osThread(accelerometerThread), NULL);
 
-	// The below doesn't really need to be in a loop
-	while(1){
-		osDelay(osWaitForever);
-	}
+	displayUI(); //Main function
 }
 
 void temperatureThread(void const *argument){
 	
 	uint16_t adcValue = 0;
-	uint8_t LEDState = 0; /**<A variable that sets the led state*/
 	
 	AVERAGE_DATA_TYPEDEF temperatureData; //Create temperature data structure
 	
 	movingAverageInit(&temperatureData); //Prepare filter
 	
-	while(1){
-		//NO CHECK FOR TAP STATE?
-		
-		//check current state of button
-// 		if(GPIOA->IDR & USER_BTN){
-// 			buttonState = 1 - buttonState; //toggle button state
-// 			
-// 			//debounce delay
-// 			osDelay(300);
-// 		}
-		
-		switch(buttonState){
-			case 0:
-
-				//toggle LEDs
-				LEDState = LEDToggle(LEDState);
-				
-				//toggle delay
-				osDelay(500);
+	while(1){		
+		//check sample flag. This ensures the proper 20Hz sampling rate
+		if(sampleTempFlag == 1){
 			
-				break;
+			ADC_SoftwareStartConv(ADC1); //Start conversion
 			
-			case 1:
-				//check sample flag. This ensures the proper 20Hz sampling rate
-				if(sampleTempFlag == 1){
-					
-					GPIOD->ODR = 0; //Turn off the LEDs
-					
-					ADC_SoftwareStartConv(ADC1); //Start conversion
-					
-					while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
-					ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear the ADC flag
-				
-					adcValue = ADC1->DR; //Retrieve ADC value in bits
-					
-					temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
-					temperature = movingAverage(temperature, &temperatureData); //Filter the temperature
-					displayTemperature(temperature); //Display the temperature
-					
-					sampleTempFlag = 0; //reset the  sample flag
-				}
-				break;
-			}
+			while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
+			ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear the ADC flag
+		
+			adcValue = ADC1->DR; //Retrieve ADC value in bits
+			
+			osSemaphoreWait(tempId, osWaitForever); //Have exclusive access to temperature
+			
+			temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
+			temperature = movingAverage(temperature, &temperatureData); //Filter the temperature
+			
+			osSemaphoreRelease(tempId); //Release access to temperature
+			
+			sampleTempFlag = 0; //reset the  sample flag
 		}
-}	
+	}
+}
+	
 
 void accelerometerThread(void const * argument){
 
@@ -168,7 +143,9 @@ void accelerometerThread(void const * argument){
 	//Real-time processing of data
 	while(1){
 		
-		LIS302DL_ReadACC(accValues); //Read from ACC			
+		#if DEBUG
+		LIS302DL_ReadACC(accValues); //Read from ACC	HOWEVER THIS HAPPENS NOW PLACE HOLDER		
+		#endif
 		calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
 		
 		//Filter ACC values
@@ -182,7 +159,28 @@ void accelerometerThread(void const * argument){
 *@brief A function that runs the display user interface
 *@retval None
 */
-void displayUI(void);
+void displayUI(void)
+{
+	uint8_t LEDState = 0; //Led state variable
+	float temp; //Temparture variable
+	float acceleration[3]; //acceleration variable
+	
+	while(1){
+		
+		switch(buttonState){
+		
+			case 0:
+				LEDState = LEDToggle(LEDState);
+				osDelay(500);
+			break;
+			
+			case 1:
+				temp = getTemperature();
+				displayTemperature(temp);
+			break;
+		}
+	}
+}
 
 /**
 *@brief An interrupt handler for EXTI0
