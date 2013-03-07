@@ -28,8 +28,6 @@ float XOffset = 11.26;
 float XSensitivityPos = 0.9889;
 float XSensitivityNeg = 1.0114;
 
-float angles[2]; /**<A variable containing the pitch and roll */
-
 /*Includes*/
 #include <math.h>
 
