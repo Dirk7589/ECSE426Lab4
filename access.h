@@ -17,9 +17,8 @@ void getACCValues(float* accValues);
 
 /**
 *@brief A function that safely access's the temperature value of the temperature sensor
-*@param[inout] temperature A pointer to the new location in memory that data is copied to
-*@retval None
+*@retval temperature
 */
-void getTemperature(float* temperature);
+float getTemperature(void);
 
 #endif
