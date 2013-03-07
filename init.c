@@ -40,7 +40,7 @@ void initIO(void)
 	
 	gpio_init_button.GPIO_Pin	= GPIO_Pin_0; //Set button input
 	gpio_init_button.GPIO_Mode = GPIO_Mode_IN; //Set as input
-	gpio_init_button.GPIO_Speed = GPIO_Speed_100MHz; //Set at max slew rate
+	gpio_init_button.GPIO_Speed = GPIO_Speed_50MHz; //Set at max slew rate
 	gpio_init_button.GPIO_OType = GPIO_OType_PP; //Push Pull config
 	gpio_init_button.GPIO_PuPd = GPIO_PuPd_DOWN; //Turn pull up on low
 	
