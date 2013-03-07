@@ -7,6 +7,7 @@
 #include "initACC.h"
 #include "common.h"
 #include "stm32f4_discovery_lis302dl.h"
+#include <math.h>
 
 /*Defines*/
 #define GREEN_LED 0x1000 /*!<Defines the bit location of the green LED*/
@@ -59,7 +60,7 @@ void initACC(void)
 		//Enable interupts for Tap Detection for the LIS302DL
     LIS302DL_InterruptConfigTypeDef LIS302DL_InterruptConfigStruct; //Define struct
     
-		ctrl = 0x07; //Correct mask value for click interupt
+		ctrl = 0x38; //Correct mask value for click interupt
 		LIS302DL_Write(&ctrl, LIS302DL_CTRL_REG3_ADDR, 1); //Configure control register for click interupt
 	
     LIS302DL_InterruptConfigStruct.Latch_Request = LIS302DL_INTERRUPTREQUEST_NOTLATCHED; //Latch interupt request
@@ -239,14 +240,44 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 	//accelerationTotals[0] = accelerationTotals[0] + accCorrectedValues[0] - previousValues[0];
 	//accelerationTotals[1] = accelerationTotals[1] + accCorrectedValues[1] - previousValues[1];
 	
-	accelerationTotals[0] = accCorrectedValues[0] - previousValues[0];
-	accelerationTotals[1] = accCorrectedValues[1] - previousValues[1];
+	float accelerationDiff[2] = {0,0};
+	float absDiff0 = 0;
+	float absDiff1 = 1;
+
+	accelerationDiff[0] = accCorrectedValues[0] - previousValues[0];
+	accelerationDiff[1] = accCorrectedValues[1] - previousValues[1];
 	
 	previousValues[0] = accCorrectedValues[0];
 	previousValues[1] = accCorrectedValues[1];
 	
+	if(accelerationDiff[0] < 0){
+		absDiff0 = accelerationDiff[0] * -1;
+	}
+	else{
+		absDiff0 = accelerationDiff[0];
+	}
+	
+	if(accelerationDiff[1] < 0){
+		absDiff1 = accelerationDiff[1] * -1;
+	}
+	else{
+		absDiff1 = accelerationDiff[1];
+	}
+
+	if(absDiff0 > 100 && absDiff0 < 1000){
+		accelerationTotals[0] = accelerationTotals[0] + accelerationDiff[0];
+	}
+	
+	if(absDiff1 > 100 && absDiff1 < 1000){
+		accelerationTotals[1] = accelerationTotals[1] + accelerationDiff[1];
+	}
+	
 	printf("x-value: %f\n", accelerationTotals[0]); 
 	printf("y-value: %f\n", accelerationTotals[1]); 
+	//printf("x-value: %f\n", accCorrectedValues[0]); 
+	//printf("y-value: %f\n", accCorrectedValues[1]); 
+	//printf("x-value: %f\n", accelerationDiff[0]); 
+	//printf("y-value: %f\n", accelerationDiff[1]);
 	
 	if(accelerationTotals[0] > MOVEMENT_THRESHOLD){
 		GPIOD->BSRRL = BLUE_LED; //Moving in positive x direction
