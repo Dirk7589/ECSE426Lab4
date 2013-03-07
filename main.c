@@ -25,7 +25,7 @@
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
 
 /*Global Variables*/
-uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
+uint8_t tapState = 1; /**<A varaible that represents the current tap state*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 int32_t sampleTempFlag = 0x0000;
@@ -166,6 +166,8 @@ void displayUI(void)
 	uint8_t LEDState = 0; //Led state variable
 	float temp; //Temparture variable
 	float acceleration[3]; //acceleration variable
+	float previousValues[2] = {0,0};
+	float accelerationTotals[2] = {0,0};
 	
 	while(1){
 		switch(tapState){
@@ -185,16 +187,15 @@ void displayUI(void)
 			break;
 		
 		case 1:
+			getACCValues(acceleration);
 			switch(buttonState){
 				
 					case 0:
-						getACCValues(acceleration);
 						displayDominantAngle(acceleration);
 					break;
 					
 					case 1:
-						LEDState = LEDToggle(LEDState);
-						osDelay(500);
+						displayBoardMovement(acceleration, previousValues, accelerationTotals);
 					break;
 				}
 			}
