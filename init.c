@@ -173,7 +173,7 @@ void initEXTIButton(void)
 
 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource0);	//Select pin to interupt from
 	
-	exti_init.EXTI_Line = EXTI_Line1; //Select line 1
+	exti_init.EXTI_Line = EXTI_Line0; //Select line 1
 	exti_init.EXTI_LineCmd = ENABLE; //Enable
 	exti_init.EXTI_Mode = EXTI_Mode_Interrupt; //Interupt mode
 	exti_init.EXTI_Trigger = EXTI_Trigger_Rising; //Rising edge trigger
@@ -183,9 +183,9 @@ void initEXTIButton(void)
 	//Enable the NVIC if needed
 	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
 	
-	NVIC_Struct.NVIC_IRQChannel = EXTI1_IRQn; //Select EXTI0
-	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = BUTTON_PRIORITY; //Set preemption priority
-	NVIC_Struct.NVIC_IRQChannelSubPriority = 0; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannel = EXTI0_IRQn; //Select EXTI0
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
+	NVIC_Struct.NVIC_IRQChannelSubPriority = BUTTON_PRIORITY; //Set sub prioirity
 	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
 	
 	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct//Configure the NVIC for use with EXTI
