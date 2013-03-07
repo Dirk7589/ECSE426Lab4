@@ -85,7 +85,7 @@ uint8_t LEDToggle(uint8_t LEDState){
     }
     else{
         LEDState = 0; //update state
-        GPIOD->ODR = 1; //Turn off leds
+        GPIOD->BSRRH = GREEN_LED | ORANGE_LED | RED_LED | BLUE_LED; //Turn off leds
     }
 		
 		return LEDState;
