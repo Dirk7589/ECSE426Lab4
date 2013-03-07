@@ -18,6 +18,11 @@
 #include "access.h"
 #include "common.h"
 
+/*Defines */
+#define DEBUG 1
+
+#define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
+#define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
 
 /*Global Variables*/
 uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
@@ -26,20 +31,32 @@ uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperatu
 uint8_t sampleTempFlag = 0;
 uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
 
-/*Defines */
-#define DEBUG 1
+//Data Variables decleration
+float temperature;
+float accCorrectedValues[3];
+float angles[2];
 
-#define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
-#define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
+//Define semaphores
+osSemaphoreDef(temperature)
+osSemaphoreDef(accCorrectedValues)
+osSemaphoreId tempId;
+osSemaphoreId accId;
 
+/*Function Prototypes*/
+
+/**
+*@brief A function that runs the display user interface
+*@retval None
+*/
+void displayUI(void);
 /*!
- @brief Thread to perform menial tasks such as switching LEDs
+ @brief Thread to perform the temperature data processing
  @param argument Unused
  */
 void temperatureThread(void const * argument);
 
 /*!
- @brief Thread to perform menial tasks such as switching LEDs
+ @brief Thread to perform the accelerometer data processing
  @param argument Unused
  */
 void accelerometerThread(void const * argument);
@@ -48,13 +65,19 @@ void accelerometerThread(void const * argument);
 osThreadDef(temperatureThread, osPriorityNormal, 1, 0);
 osThreadDef(accelerometerThread, osPriorityNormal, 1, 0);
 
-/*!
- @brief Program entry point
- */
+
+/**
+*@brief The main function that creates the processing threads and displays the UI
+*@retval An int
+*/
 int main (void) {
 	// ID for thread
 	osThreadId tThread; //Tempearture thread ID
 	osThreadId aThread; //Accelerometer thread ID
+	
+	//Create necessary semaphores
+	tempId = osSemaphoreCreate(osSemaphore(temperature), 1);
+	accId = osSemaphoreCreate(osSemaphore(accCorrectedValues), 1);
 	
 	initIO();
 	initEXTIButton();
@@ -154,6 +177,12 @@ void accelerometerThread(void const * argument){
 		accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
 	}
 }
+
+/**
+*@brief A function that runs the display user interface
+*@retval None
+*/
+void displayUI(void);
 
 /**
 *@brief An interrupt handler for EXTI0
