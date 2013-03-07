@@ -197,12 +197,21 @@ void displayDominantAngle(float* accCorrectedValues)
 	toAngle(accCorrectedValues, angles); //Convert to pitch and roll
 	
 	if(angles[0] > 0 && angles[0] > ANGLE_THRESHOLD){
-		//GPIOD->BSRRL = ~BLUE_LED; //Turn off other LED
+		GPIOD->BSRRH = BLUE_LED; //Turn off other LED
 		GPIOD->BSRRL = ORANGE_LED; //Roll to the right
 	}
 	if(angles[0] < 0 && angles[0] < -ANGLE_THRESHOLD){
-		//GPIOD->BSRRL = ORANGE_LED; //Turn off LED
+		GPIOD->BSRRH = ORANGE_LED; //Turn off LED
 		GPIOD->BSRRL = BLUE_LED; //Roll to the left
+	}
+	
+	if(angles[1] > 0 && angles[1] > ANGLE_THRESHOLD){
+		GPIOD->BSRRH = RED_LED; //Turn off other LED
+		GPIOD->BSRRL = GREEN_LED; //Pitch forward
+	}
+	if(angles[1] < 0 && angles[1] < -ANGLE_THRESHOLD){
+		GPIOD->BSRRH = GREEN_LED; //Turn off LED
+		GPIOD->BSRRL = RED_LED; //Pitch backwards
 	}
 }
 
