@@ -7,8 +7,9 @@
 */
 
 /*Includes*/
+#include "access.h"
 #include "common.h"
-
+#include "cmsis_os.h"
 /**
 *@brief A function that safely access's the corrected values of the accelerometer
 *@param[inout] accValues A pointer to the new location in memory that data is copied to
@@ -18,18 +19,22 @@ void getACCValues(float* accValues)
 {
 	
 	int i = 0;
-	for(i = 0; i < 3; i++)
-	//STILL NEED SEMAPHORE TO PROTECT ACCESS
-		accValues[i] = accCorrectedValues[i];
+	for(i = 0; i < 3; i++){
+		osSemaphoreWait(accId, osWaitForever);
+		accValues[i] = accCorrectedValues[i]; //Critical access portion
+		osSemaphoreRelease(accId);
+	}
 }
 
 /**
 *@brief A function that safely access's the temperature value of the temperature sensor
-*@param[in] temp A the new location in memory for temperature
 *@retval temperature
 */
-float getTemperature(float temp)
+float getTemperature(void)
 {
-	//STILL NEED SEMAPHORE TO PROTECT ACCESS
-	return temp = temperature;
+	float temp;
+	osSemaphoreWait(tempId, osWaitForever);
+	temp = temperature; //Critical access portion
+	osSemaphoreRelease(tempId);
+	return temp;
 }
