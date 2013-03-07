@@ -15,6 +15,8 @@
 #include "initACC.h"
 #include "moving_average.h"
 #include "temp.h"
+#include "access.h"
+#include "common.h"
 
 
 /*Global Variables*/
@@ -23,11 +25,6 @@ uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a val
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 uint8_t sampleTempFlag = 0;
 uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
-
-extern float temperature; /**<The temperature variable*/
-int32_t accValues[3]; //To retrieve the accelerometer values
-float accCorrectedValues[3]; //To values
-float angles[2]; /**<A variable containing the pitch and roll */
 
 /*Defines */
 #define DEBUG 1
@@ -133,6 +130,8 @@ void temperatureThread(void const *argument){
 
 void accelerometerThread(void const * argument){
 
+	int32_t accValues[3]; //To retrieve the accelerometer values
+	
 	//Create structures for moving average filter
 	AVERAGE_DATA_TYPEDEF dataX;
 	AVERAGE_DATA_TYPEDEF dataY;
@@ -143,6 +142,7 @@ void accelerometerThread(void const * argument){
 	movingAverageInit(&dataY);
 	movingAverageInit(&dataZ);
 
+	//Real-time processing of data
 	while(1){
 		
 		LIS302DL_ReadACC(accValues); //Read from ACC			
@@ -152,10 +152,6 @@ void accelerometerThread(void const * argument){
 		accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
 		accCorrectedValues[1] = movingAverage(accCorrectedValues[1], &dataY);
 		accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
-
-		#if DEBUG
-		displayDominantAngle(accCorrectedValues); //Display the dominant angle
-		#endif
 	}
 }
 
