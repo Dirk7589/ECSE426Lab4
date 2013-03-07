@@ -2,8 +2,7 @@
 *@file access.h
 *@author Dirk Dubois, Alain Slak
 *@date March 6th, 2013
-*@brief 
-*
+*@brief A set of functions that provide access to global variables shared accross multiple threads
 */
 
 #ifndef __ACCESS_H
