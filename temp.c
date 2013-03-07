@@ -8,6 +8,9 @@
 /*Includes*/
 #include "temp.h"
 
+/*Global Variables*/
+
+
 /**
 * @brief Conversion function for ADC value to degrees Celcius.
 * The following function connverts an ADC value from the temperature
