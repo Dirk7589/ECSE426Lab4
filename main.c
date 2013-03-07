@@ -86,8 +86,8 @@ int main (void) {
 	initEXTIButton(); //Enable button interrupts via exti1
 	
 	// Start thread
-	tThread = osThreadCreate(osThread(temperatureThread), NULL);
-	//aThread = osThreadCreate(osThread(accelerometerThread), NULL);
+	//tThread = osThreadCreate(osThread(temperatureThread), NULL);
+	aThread = osThreadCreate(osThread(accelerometerThread), NULL);
 
 	displayUI(); //Main function
 }
@@ -144,10 +144,10 @@ void accelerometerThread(void const * argument){
 		#if DEBUG
 		LIS302DL_ReadACC(accValues); //Read from ACC	HOWEVER THIS HAPPENS NOW PLACE HOLDER		
 		#endif
-		calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
-		
 		//Filter ACC values
 		osSemaphoreWait(accId, osWaitForever); //Have exclusive access to temperature
+		
+		calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
 		
 		accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
 		accCorrectedValues[1] = movingAverage(accCorrectedValues[1], &dataY);
@@ -168,19 +168,36 @@ void displayUI(void)
 	float acceleration[3]; //acceleration variable
 	
 	while(1){
-		
-		switch(buttonState){
-		
-			case 0:
-				LEDState = LEDToggle(LEDState);
-				osDelay(500);
+		switch(tapState){
+			case 0: 
+				switch(buttonState){
+				
+					case 0:
+						LEDState = LEDToggle(LEDState);
+						osDelay(500);
+					break;
+					
+					case 1:
+						temp = getTemperature();
+						displayTemperature(temp);
+					break;
+				}
 			break;
-			
-			case 1:
-				temp = getTemperature();
-				displayTemperature(temp);
-			break;
-		}
+		
+		case 1:
+			switch(buttonState){
+				
+					case 0:
+						getACCValues(acceleration);
+						displayDominantAngle(acceleration);
+					break;
+					
+					case 1:
+						LEDState = LEDToggle(LEDState);
+						osDelay(500);
+					break;
+				}
+			}
 	}
 }
 
