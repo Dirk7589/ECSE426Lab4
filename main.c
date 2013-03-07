@@ -62,20 +62,18 @@ void temperatureThread(void const * argument);
  */
 void accelerometerThread(void const * argument);
 
-//! Thread structure for above thread
+//Thread structure for above thread
 osThreadDef(temperatureThread, osPriorityNormal, 1, 0);
 osThreadDef(accelerometerThread, osPriorityNormal, 1, 0);
+osThreadId tThread; //Tempearture thread ID
+osThreadId aThread; //Accelerometer thread ID
 
 
 /**
 *@brief The main function that creates the processing threads and displays the UI
 *@retval An int
 */
-int main (void) {
-	// ID for thread
-	osThreadId tThread; //Tempearture thread ID
-	osThreadId aThread; //Accelerometer thread ID
-	
+int main (void) {	
 	//Create necessary semaphores
 	tempId = osSemaphoreCreate(osSemaphore(temperature), 1);
 	accId = osSemaphoreCreate(osSemaphore(accCorrectedValues), 1);
@@ -88,8 +86,8 @@ int main (void) {
 	initEXTIButton(); //Enable button interrupts via exti1
 	
 	// Start thread
-	//tThread = osThreadCreate(osThread(temperatureThread), NULL);
-	aThread = osThreadCreate(osThread(accelerometerThread), NULL);
+	tThread = osThreadCreate(osThread(temperatureThread), NULL);
+	//aThread = osThreadCreate(osThread(accelerometerThread), NULL);
 
 	displayUI(); //Main function
 }
@@ -104,24 +102,24 @@ void temperatureThread(void const *argument){
 	
 	while(1){		
 		//check sample flag. This ensures the proper 20Hz sampling rate
-		if(sampleTempFlag == 1){
+		osSignalWait(sampleTempFlag, osWaitForever);
 			
-			ADC_SoftwareStartConv(ADC1); //Start conversion
-			
-			while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
-			ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear the ADC flag
+		ADC_SoftwareStartConv(ADC1); //Start conversion
 		
-			adcValue = ADC1->DR; //Retrieve ADC value in bits
-			
-			osSemaphoreWait(tempId, osWaitForever); //Have exclusive access to temperature
-			
-			temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
-			temperature = movingAverage(temperature, &temperatureData); //Filter the temperature
-			
-			osSemaphoreRelease(tempId); //Release access to temperature
-			
-			sampleTempFlag = 0; //reset the  sample flag
-		}
+		while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //wait for end of conversion
+		ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //clear the ADC flag
+	
+		adcValue = ADC1->DR; //Retrieve ADC value in bits
+		
+		osSemaphoreWait(tempId, osWaitForever); //Have exclusive access to temperature
+		
+		temperature = toDegreeC(adcValue); //Determine the temperature in Celcius
+		temperature = movingAverage(temperature, &temperatureData); //Filter the temperature
+		
+		osSemaphoreRelease(tempId); //Release access to temperature
+		
+		osSignalClear(tThread, sampleTempFlag);
+		
 	}
 }
 	
@@ -149,9 +147,13 @@ void accelerometerThread(void const * argument){
 		calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
 		
 		//Filter ACC values
+		osSemaphoreWait(accId, osWaitForever); //Have exclusive access to temperature
+		
 		accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
 		accCorrectedValues[1] = movingAverage(accCorrectedValues[1], &dataY);
 		accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
+		
+		osSemaphoreRelease(accId); //Release exclusive access
 	}
 }
 
@@ -212,7 +214,7 @@ void TIM3_IRQHandler(void)
 	
 	if(sampleTempFlag == 0){
 		if(sampleTempCounter == 5){
-			sampleTempFlag = 1;
+			osSignalSet(tThread, sampleTempFlag);
 			sampleTempCounter = 0;
 		}
 		else{
