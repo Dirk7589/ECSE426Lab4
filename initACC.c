@@ -5,6 +5,7 @@
 
 /*Includes*/
 #include "initACC.h"
+#include "common.h"
 #include "stm32f4_discovery_lis302dl.h"
 
 /*Defines*/
