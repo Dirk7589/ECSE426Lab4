@@ -208,7 +208,7 @@ void displayUI(void)
 */
 void EXTI0_IRQHandler(void)
 {
-	tapState = 1 - tapState;	//Change the current tap state
+	buttonState = 1 - buttonState;	//Change the current tap state
 	EXTI_ClearITPendingBit(EXTI_Line0);	//Clear the EXTI0 interrupt flag
 }
 
@@ -218,8 +218,8 @@ void EXTI0_IRQHandler(void)
 */
 void EXTI1_IRQHandler(void)
 {
-	//buttonState = 1 - buttonState;	//Change the current tap state
-	//EXTI_ClearITPendingBit(EXTI_Line1);	//Clear the EXTI0 interrupt flag
+	tapState = 1 - tapState;	//Change the current tap state
+	EXTI_ClearITPendingBit(EXTI_Line1);	//Clear the EXTI0 interrupt flag
 }
 
 /**
