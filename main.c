@@ -83,10 +83,10 @@ int main (void) {
 	initTim3(); //Enable Tim3 at 100Hz
 	initACC(); //Enable the accelerometer
 	initEXTIACC(); //Enable tap interrupts via exti0
-	//initEXTIButton(); //Enable button interrupts via exti1
+	initEXTIButton(); //Enable button interrupts via exti1
 	
 	// Start thread
-	//tThread = osThreadCreate(osThread(temperatureThread), NULL);
+	tThread = osThreadCreate(osThread(temperatureThread), NULL);
 	aThread = osThreadCreate(osThread(accelerometerThread), NULL);
 
 	displayUI(); //Main function
