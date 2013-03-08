@@ -19,7 +19,7 @@
 #include "common.h"
 
 /*Defines */
-#define DEBUG 1
+#define DEBUG 0
 
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
@@ -131,6 +131,7 @@ void temperatureThread(void const *argument){
 void accelerometerThread(void const * argument){
 
 	//int32_t accValues[3]; //To retrieve the accelerometer values
+	uint8_t ctrl = 0x80;
 	
 	//Create structures for moving average filter
 	AVERAGE_DATA_TYPEDEF dataX;
@@ -141,7 +142,18 @@ void accelerometerThread(void const * argument){
 	movingAverageInit(&dataX);
 	movingAverageInit(&dataY);
 	movingAverageInit(&dataZ);
-
+	
+	#if !DEBUG
+	GPIO_ResetBits(GPIOE, (uint16_t)0x0008);
+	//stream0 is rx, stream3 is tx
+	DMA2_Stream0->M0AR = (uint32_t) accValues;
+	DMA2_Stream3->M0AR = (uint32_t) ctrl;
+	DMA2_Stream0->NDTR = 6;
+	DMA2_Stream3->NDTR = 1;
+	DMA2_Stream0->CR |= DMA_SxCR_EN;
+	DMA2_Stream3->CR |= DMA_SxCR_EN;
+	#endif
+	
 	//Real-time processing of data
 	while(1){
 		
