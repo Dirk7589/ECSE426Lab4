@@ -8,6 +8,9 @@
 
 #ifndef __INIT_H
 #define __INIT_H
+/*Includes*/
+#include <stdint.h>
+
 
 /*Defines*/
 /**@defgroup TIM3_SCALERS
@@ -51,9 +54,10 @@ void initTim3(void);
 
 /**
 *@brief A function that intializes DMA for use with the accelerometer.
+*@param[in] accValuesDestination The base destination address for the transfer
 *@retval None
 */
-void initDMAACC(void);
+void initDMAACC(int32_t* accValuesDestination);
 
 /**
 *@brief A function that enables EXTI for the button

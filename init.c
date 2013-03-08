@@ -130,20 +130,24 @@ void initTim3(void)
 
 /**
 *@brief A function that intializes DMA for use with the accelerometer.
+*@param[in] accValuesDestination The base destination address for the transfer
 *@retval None
 */
-void initDMAACC(void)
+void initDMAACC(int32_t* accValuesDestination)
 {
 	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA2, ENABLE); //Enable peripheral clock for DMA2
 	
 	DMA_InitTypeDef DMA_InitStruct; //Create DMA init struct
+	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
+	
+	DMA_DeInit(DMA2_Stream0);
 	DMA_StructInit(&DMA_InitStruct); //Prepare the structure
 	
-	DMA_InitStruct.DMA_Channel = 0;
+	DMA_InitStruct.DMA_Channel = 3; //Select the Channel connected to SPI1 RX, pg 168 of FRM
 	DMA_InitStruct.DMA_PeripheralBaseAddr = (uint32_t) &SPI1->DR; //Must be a uint32
-	DMA_InitStruct.DMA_Memory0BaseAddr = 0; //Variable where the data will be stored
+	DMA_InitStruct.DMA_Memory0BaseAddr = (uint32_t) &accValuesDestination; //Variable where the data will be stored
 	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	DMA_InitStruct.DMA_BufferSize = 0;
+	DMA_InitStruct.DMA_BufferSize = 8; //Size of buffer
 	DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
@@ -157,6 +161,17 @@ void initDMAACC(void)
 	
 	DMA_Init(DMA2_Stream0, &DMA_InitStruct); //Intialize the structure
 
+	NVIC_Struct.NVIC_IRQChannel = DMA2_Stream0_IRQn; //Select timer 3 interupt
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
+	NVIC_Struct.NVIC_IRQChannelSubPriority =0; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
+	
+	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct
+	
+	DMA_ITConfig(DMA2_Stream0, DMA_IT_TC, ENABLE); //Enable the corresponding NVIC interupt
+	
+	DMA_Cmd(DMA2_Stream0, ENABLE); //Enable DMA
+	//TIM_Cmd(TIM3, ENABLE); //Enable the timer
 	
 }
 
