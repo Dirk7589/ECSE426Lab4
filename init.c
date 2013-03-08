@@ -140,7 +140,7 @@ void initDMAACC(void)
 	DMA_StructInit(&DMA_InitStruct); //Prepare the structure
 	
 	DMA_InitStruct.DMA_Channel = 0;
-	DMA_InitStruct.DMA_PeripheralBaseAddr = 0; //Must be a uint32
+	DMA_InitStruct.DMA_PeripheralBaseAddr = (uint32_t) &SPI1->DR; //Must be a uint32
 	DMA_InitStruct.DMA_Memory0BaseAddr = 0; //Variable where the data will be stored
 	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralToMemory;
 	DMA_InitStruct.DMA_BufferSize = 0;
