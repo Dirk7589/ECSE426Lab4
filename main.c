@@ -141,6 +141,8 @@ void accelerometerThread(void const * argument){
 	//Real-time processing of data
 	while(1){
 		
+		osSignalWait(sampleACCFlag, 0); //Wait to sample
+		
 		#if DEBUG
 		LIS302DL_ReadACC(accValues); //Read from ACC	HOWEVER THIS HAPPENS NOW PLACE HOLDER		
 		#endif
@@ -154,6 +156,7 @@ void accelerometerThread(void const * argument){
 		accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
 		
 		osSemaphoreRelease(accId); //Release exclusive access
+		osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
 	}
 }
 
@@ -175,27 +178,29 @@ void displayUI(void)
 				switch(buttonState){
 				
 					case 0:
-						LEDState = LEDToggle(LEDState);
+						LEDState = LEDToggle(LEDState); //Toggle LEDS
 						osDelay(500);
 					break;
 					
 					case 1:
-						temp = getTemperature();
-						displayTemperature(temp);
+						temp = getTemperature(); //Get the temperature from global variable
+						displayTemperature(temp); //Display the temperature
 					break;
 				}
 			break;
 		
 		case 1:
-			getACCValues(acceleration);
+			
+			getACCValues(acceleration); //Get the acceleration from global variable
+		
 			switch(buttonState){
 				
 					case 0:
-						displayDominantAngle(acceleration);
+						displayDominantAngle(acceleration); //Display the dominant angle
 					break;
 					
 					case 1:
-						displayBoardMovement(acceleration, previousValues, accelerationTotals);
+						displayBoardMovement(acceleration, previousValues, accelerationTotals); //display the boards movement
 					break;
 				}
 			}
@@ -228,7 +233,7 @@ void EXTI1_IRQHandler(void)
 */
 void TIM3_IRQHandler(void)
 {
-	sampleACCFlag = 1;													//Set flag for accelerometer sampling
+	osSignalSet(aThread, sampleACCFlag);					//Set flag for accelerometer sampling
 	
 	if(sampleTempCounter == 5){
 		osSignalSet(tThread, sampleTempFlag);
