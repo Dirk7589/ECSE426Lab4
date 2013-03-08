@@ -254,5 +254,5 @@ void DMA2_Stream0_IRQHandler(void)
 {
 	osSignalSet(aThread, sampleACCFlag);					//Set flag for accelerometer sampling
 	
-	//DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); //NEED TO CLEAR FLAG BUT NOT SURE WHICH YET
+	DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); //Clear the flag for transfer complete
 }
