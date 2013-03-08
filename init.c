@@ -146,8 +146,8 @@ void initDMAACC(void)
 	DMA_InitStruct.DMA_BufferSize = 0;
 	DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Word;
-	DMA_InitStruct.DMA_MemoryDataSize = DMA_MemoryDataSize_Word;
+	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+	DMA_InitStruct.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 	DMA_InitStruct.DMA_Mode = DMA_Mode_Normal;
 	DMA_InitStruct.DMA_Priority = DMA_Priority_Medium;
 	DMA_InitStruct.DMA_FIFOMode = DMA_FIFOMode_Disable;
