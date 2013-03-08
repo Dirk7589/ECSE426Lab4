@@ -143,7 +143,7 @@ void initDMAACC(int32_t* accValuesDestination)
 	DMA_DeInit(DMA2_Stream0);
 	DMA_StructInit(&DMA_InitStruct); //Prepare the structure
 	
-	DMA_InitStruct.DMA_Channel = 3; //Select the Channel connected to SPI1 RX, pg 168 of FRM
+	DMA_InitStruct.DMA_Channel = DMA_Channel_3; //Select the Channel connected to SPI1 RX, pg 168 of FRM
 	DMA_InitStruct.DMA_PeripheralBaseAddr = (uint32_t) &SPI1->DR; //Must be a uint32
 	DMA_InitStruct.DMA_Memory0BaseAddr = (uint32_t) &accValuesDestination; //Variable where the data will be stored
 	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralToMemory;
