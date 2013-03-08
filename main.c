@@ -233,7 +233,7 @@ void EXTI1_IRQHandler(void)
 */
 void TIM3_IRQHandler(void)
 {
-	osSignalSet(aThread, sampleACCFlag);					//Set flag for accelerometer sampling
+	
 	
 	if(sampleTempCounter == 5){
 		osSignalSet(tThread, sampleTempFlag);
@@ -246,3 +246,13 @@ void TIM3_IRQHandler(void)
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
 }
 
+/**
+*@brief An interrupt handler for DMA2_Stream0
+*@retval None
+*/
+void DMA2_Stream0_IRQHandler(void)
+{
+	osSignalSet(aThread, sampleACCFlag);					//Set flag for accelerometer sampling
+	
+	//DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); //NEED TO CLEAR FLAG BUT NOT SURE WHICH YET
+}
