@@ -278,13 +278,15 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 	if (accelerationDiff[1] < 100){
 		accelerationDiff[1] = 0;
 	}
-	
+	#if DEBUG
 	printf("x-value: %f\n", accelerationTotals[0]); 
 	printf("y-value: %f\n", accelerationTotals[1]); 
 	//printf("x-value: %f\n", accCorrectedValues[0]); 
 	//printf("y-value: %f\n", accCorrectedValues[1]); 
 	//printf("x-value: %f\n", accelerationDiff[0]); 
 	//printf("y-value: %f\n", accelerationDiff[1]);
+	#endif
+	
 	
 	if(accelerationTotals[0] > MOVEMENT_THRESHOLD){
 		GPIOD->BSRRL = BLUE_LED; //Moving in positive x direction
