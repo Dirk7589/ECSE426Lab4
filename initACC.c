@@ -241,43 +241,36 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 	//accelerationTotals[1] = accelerationTotals[1] + accCorrectedValues[1] - previousValues[1];
 	
 	float accelerationDiff[2] = {0,0};
-	float absDiff0 = 0;
-	float absDiff1 = 1;
 
 	accelerationDiff[0] = accCorrectedValues[0] - previousValues[0];
 	accelerationDiff[1] = accCorrectedValues[1] - previousValues[1];
 	
 	previousValues[0] = accCorrectedValues[0];
 	previousValues[1] = accCorrectedValues[1];
-	
-	if(accelerationDiff[0] < 0){
-		absDiff0 = accelerationDiff[0] * -1;
-	}
-	else{
-		absDiff0 = accelerationDiff[0];
-	}
-	
-	if(accelerationDiff[1] < 0){
-		absDiff1 = accelerationDiff[1] * -1;
-	}
-	else{
-		absDiff1 = accelerationDiff[1];
-	}
 
-	if(absDiff0 > 100 ){//&& absDiff0 < 500){
+	if(accelerationDiff[0] > MOVEMENT_THRESHOLD || accelerationDiff[0] < -MOVEMENT_THRESHOLD){//&& absDiff0 < 500){
 		accelerationTotals[0] = accelerationTotals[0] + accelerationDiff[0];
 	}
 	
-	if(absDiff1 > 100 ){//&& absDiff1 < 500){
+	if(accelerationDiff[1] > MOVEMENT_THRESHOLD || accelerationDiff[1] < -MOVEMENT_THRESHOLD){//&& absDiff1 < 500){
 		accelerationTotals[1] = accelerationTotals[1] + accelerationDiff[1];
 	}
 	
-	if (accelerationDiff[0] < 100){
-		accelerationDiff[0] = 0;
+	if(accelerationTotals[0] < MOVEMENT_THRESHOLD && accelerationTotals[0] > -MOVEMENT_THRESHOLD){
+		accelerationTotals[0] = 0;
 	}
-	if (accelerationDiff[1] < 100){
-		accelerationDiff[1] = 0;
+	
+	if(accelerationTotals[1] < MOVEMENT_THRESHOLD && accelerationTotals[1] > -MOVEMENT_THRESHOLD){
+		accelerationTotals[1] = 0;
 	}
+	
+	if(accelerationTotals[0] > 1000 || accelerationTotals[0] < -1000){
+		accelerationTotals[0] =0;
+	}
+	if(accelerationTotals[1] > 1000 || accelerationTotals[1] < -1000){
+		accelerationTotals[1] = 0;
+	}
+	
 	#if DEBUG
 	printf("x-value: %f\n", accelerationTotals[0]); 
 	printf("y-value: %f\n", accelerationTotals[1]); 
@@ -288,32 +281,32 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 	#endif
 	
 	
-	if(accelerationTotals[0] > MOVEMENT_THRESHOLD){
+	if(accelerationTotals[0] > MOVEMENT_LED_THRESHOLD){
 		GPIOD->BSRRL = BLUE_LED; //Moving in positive x direction
 	}
 	else{
 		GPIOD->BSRRH = BLUE_LED;
 	}
 	
-	if(accelerationTotals[0] < -MOVEMENT_THRESHOLD){
+	if(accelerationTotals[0] < -MOVEMENT_LED_THRESHOLD){
 		GPIOD->BSRRL = ORANGE_LED; //Moving in negative x direction
 	}
 	else{
 		GPIOD->BSRRH = ORANGE_LED;
 	}
 	
-	if(accelerationTotals[1] > MOVEMENT_THRESHOLD){
-		GPIOD->BSRRL = GREEN_LED; //Moving in positive y direction
-	}
-	else{
-		GPIOD->BSRRH = GREEN_LED;
-	}
-	
-	if(accelerationTotals[1] < -MOVEMENT_THRESHOLD){
-		GPIOD->BSRRL = RED_LED; //Moving in negative y direction
+	if(accelerationTotals[1] > MOVEMENT_LED_THRESHOLD){
+		GPIOD->BSRRL = RED_LED; //Moving in positive y direction
 	}
 	else{
 		GPIOD->BSRRH = RED_LED;
+	}
+	
+	if(accelerationTotals[1] < -MOVEMENT_LED_THRESHOLD){
+		GPIOD->BSRRL = GREEN_LED; //Moving in negative y direction
+	}
+	else{
+		GPIOD->BSRRH = GREEN_LED;
 	}
 	
 }

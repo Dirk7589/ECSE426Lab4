@@ -12,6 +12,7 @@
 /*Defines*/
 #define CONVERSION_TO_DEG 57.29577951308233 /**<The scalling factor from radians to degrees*/
 #define ANGLE_THRESHOLD 20 /**<Threshold angle for displayDominant angle*/
+#define MOVEMENT_LED_THRESHOLD 150 /**<Threshold acceleration for displayBoardMovement*/
 #define MOVEMENT_THRESHOLD 100 /**<Threshold acceleration for displayBoardMovement*/
 /*Structs*/
 
