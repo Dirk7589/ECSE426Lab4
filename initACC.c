@@ -236,10 +236,7 @@ void displayDominantAngle(float* accCorrectedValues)
 *@retval None
 */
 void displayBoardMovement(float* accCorrectedValues, float* previousValues, float* accelerationTotals)
-{
-	//accelerationTotals[0] = accelerationTotals[0] + accCorrectedValues[0] - previousValues[0];
-	//accelerationTotals[1] = accelerationTotals[1] + accCorrectedValues[1] - previousValues[1];
-	
+{	
 	float accelerationDiff[2] = {0,0};
 
 	accelerationDiff[0] = accCorrectedValues[0] - previousValues[0];
@@ -274,10 +271,6 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 	#if DEBUG
 	printf("x-value: %f\n", accelerationTotals[0]); 
 	printf("y-value: %f\n", accelerationTotals[1]); 
-	//printf("x-value: %f\n", accCorrectedValues[0]); 
-	//printf("y-value: %f\n", accCorrectedValues[1]); 
-	//printf("x-value: %f\n", accelerationDiff[0]); 
-	//printf("y-value: %f\n", accelerationDiff[1]);
 	#endif
 	
 	
