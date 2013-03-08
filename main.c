@@ -25,11 +25,11 @@
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
 
 /*Global Variables*/
-uint8_t tapState = 1; /**<A varaible that represents the current tap state*/
+uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 int32_t sampleTempFlag = 0x0000;
-uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
+uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
 
 //Data Variables decleration
 float temperature;
@@ -102,7 +102,7 @@ void temperatureThread(void const *argument){
 	
 	while(1){		
 		//check sample flag. This ensures the proper 20Hz sampling rate
-		osSignalWait(sampleTempFlag, osWaitForever);
+		osSignalWait(sampleTempFlag, 0);
 			
 		ADC_SoftwareStartConv(ADC1); //Start conversion
 		
