@@ -132,6 +132,7 @@ void initTim3(void)
 *@brief A function that intializes DMA for use with the accelerometer.
 *@param[in] accValuesDestination The base destination address for the transfer
 *@retval None
+*@Warning initACC must be called before hand in order to configure SPI correctly
 */
 void initDMAACC(int32_t* accValuesDestination)
 {
@@ -160,6 +161,9 @@ void initDMAACC(int32_t* accValuesDestination)
 	DMA_InitStruct.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 	
 	DMA_Init(DMA2_Stream0, &DMA_InitStruct); //Intialize the structure
+	
+	DMA_InitStruct.DMA_DIR = DMA_DIR_MemoryToPeripheral; //
+	DMA_Init(DMA2_Stream3, &DMA_InitStruct); //Setup Tx stream
 
 	NVIC_Struct.NVIC_IRQChannel = DMA2_Stream0_IRQn; //Select timer 3 interupt
 	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
@@ -170,8 +174,11 @@ void initDMAACC(int32_t* accValuesDestination)
 	
 	DMA_ITConfig(DMA2_Stream0, DMA_IT_TC, ENABLE); //Enable the corresponding NVIC interupt
 	
-	DMA_Cmd(DMA2_Stream0, ENABLE); //Enable DMA
-	//TIM_Cmd(TIM3, ENABLE); //Enable the timer
+	DMA_Cmd(DMA2_Stream0, ENABLE); //Enable DMA for RX
+	DMA_Cmd(DMA2_Stream3, ENABLE); //Enable DMA for TX
+	
+	SPI_DMACmd(SPI1, SPI_DMAReq_Rx, ENABLE); //Start Rx dma on SPI1
+	SPI_DMACmd(SPI1, SPI_DMAReq_Tx, ENABLE); //Start Tx dma on SPI1
 	
 }
 

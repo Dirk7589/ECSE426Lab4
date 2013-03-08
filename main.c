@@ -1,4 +1,4 @@
-/**
+ /**
 *@file main.c
 *@author Dirk Dubois, Alain Slak
 *@date February 21th, 2013
@@ -19,7 +19,7 @@
 #include "common.h"
 
 /*Defines */
-#define DEBUG 1
+#define DEBUG 0
 
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
@@ -35,6 +35,7 @@ uint8_t buttonState = 0; /**<A variable that represents the current state of the
 float temperature;
 float accCorrectedValues[3];
 float angles[2];
+int32_t accValues[3];
 
 //Define semaphores
 osSemaphoreDef(temperature)
@@ -82,6 +83,7 @@ int main (void) {
 	initTempADC(); //Enable ADC for temp sensor
 	initTim3(); //Enable Tim3 at 100Hz
 	initACC(); //Enable the accelerometer
+	initDMAACC(accValues);
 	initEXTIACC(); //Enable tap interrupts via exti0
 	initEXTIButton(); //Enable button interrupts via exti1
 	
@@ -126,7 +128,7 @@ void temperatureThread(void const *argument){
 
 void accelerometerThread(void const * argument){
 
-	int32_t accValues[3]; //To retrieve the accelerometer values
+	//int32_t accValues[3]; //To retrieve the accelerometer values
 	
 	//Create structures for moving average filter
 	AVERAGE_DATA_TYPEDEF dataX;
@@ -243,7 +245,7 @@ void TIM3_IRQHandler(void)
 		sampleTempCounter++;												//Set flag for temperature sampling
 	}
 		
-	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
+	TIM_ClearFlag(TIM3, TIM_FLAG_Trigger); 				//Clear the TIM3 interupt bit
 }
 
 /**
