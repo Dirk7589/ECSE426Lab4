@@ -19,17 +19,17 @@
 #include "common.h"
 
 /*Defines */
-#define DEBUG 0
+#define DEBUG 1
 
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
 
 /*Global Variables*/
-uint8_t tapState = 0; /**<A varaible that represents the current tap state*/
+uint8_t tapState = 1; /**<A varaible that represents the current tap state*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 int32_t sampleTempFlag = 0x0000;
-uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
+uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
 
 //Data Variables decleration
 float temperature;
@@ -83,7 +83,9 @@ int main (void) {
 	initTempADC(); //Enable ADC for temp sensor
 	initTim3(); //Enable Tim3 at 100Hz
 	initACC(); //Enable the accelerometer
+	#if !DEBUG
 	initDMAACC(accValues);
+	#endif
 	initEXTIACC(); //Enable tap interrupts via exti0
 	initEXTIButton(); //Enable button interrupts via exti1
 	
@@ -235,7 +237,9 @@ void EXTI1_IRQHandler(void)
 */
 void TIM3_IRQHandler(void)
 {
-	
+	#if DEBUG
+	osSignalSet(aThread, sampleACCFlag);
+	#endif
 	
 	if(sampleTempCounter == 5){
 		osSignalSet(tThread, sampleTempFlag);
@@ -244,17 +248,21 @@ void TIM3_IRQHandler(void)
 	else{
 		sampleTempCounter++;												//Set flag for temperature sampling
 	}
-		
-	TIM_ClearFlag(TIM3, TIM_FLAG_Trigger); 				//Clear the TIM3 interupt bit
+	TIM_ClearITPendingBit(TIM3, TIM_IT_Update); //Clear the TIM3 interupt bit
+	//TIM_ClearFlag(TIM3, TIM_FLAG_Trigger); 				//Clear the TIM3 interupt bit
 }
 
 /**
 *@brief An interrupt handler for DMA2_Stream0
 *@retval None
 */
+#if !DEBUG
 void DMA2_Stream0_IRQHandler(void)
 {
+
 	osSignalSet(aThread, sampleACCFlag);					//Set flag for accelerometer sampling
 	
 	DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); //Clear the flag for transfer complete
+
 }
+#endif
