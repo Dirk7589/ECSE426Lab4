@@ -167,9 +167,9 @@ void initEXTIACC(void)
 	//Setup interupts
 	EXTI_InitTypeDef exti_init;
 
-	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource0);	//Select pin to interupt from
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource1);	//Select pin to interupt from
 	
-	exti_init.EXTI_Line = EXTI_Line0; //Select line 0
+	exti_init.EXTI_Line = EXTI_Line1; //Select line 0
 	exti_init.EXTI_LineCmd = ENABLE; //Enable
 	exti_init.EXTI_Mode = EXTI_Mode_Interrupt; //Interupt mode
 	exti_init.EXTI_Trigger = EXTI_Trigger_Rising; //Rising edge trigger
@@ -179,9 +179,9 @@ void initEXTIACC(void)
 	//Enable the NVIC if needed
 	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
 	
-	NVIC_Struct.NVIC_IRQChannel = EXTI0_IRQn; //Select EXTI0
-	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 1; //Set preemption priority
-	NVIC_Struct.NVIC_IRQChannelSubPriority = 0; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannel = EXTI1_IRQn; //Select EXTI0
+	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
+	NVIC_Struct.NVIC_IRQChannelSubPriority = 1; //Set sub prioirity
 	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
 	
 	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct//Configure the NVIC for use with EXTI
@@ -264,12 +264,19 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 		absDiff1 = accelerationDiff[1];
 	}
 
-	if(absDiff0 > 100 && absDiff0 < 1000){
+	if(absDiff0 > 100 ){//&& absDiff0 < 500){
 		accelerationTotals[0] = accelerationTotals[0] + accelerationDiff[0];
 	}
 	
-	if(absDiff1 > 100 && absDiff1 < 1000){
+	if(absDiff1 > 100 ){//&& absDiff1 < 500){
 		accelerationTotals[1] = accelerationTotals[1] + accelerationDiff[1];
+	}
+	
+	if (accelerationDiff[0] < 100){
+		accelerationDiff[0] = 0;
+	}
+	if (accelerationDiff[1] < 100){
+		accelerationDiff[1] = 0;
 	}
 	
 	printf("x-value: %f\n", accelerationTotals[0]); 
