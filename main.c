@@ -19,7 +19,6 @@
 #include "common.h"
 
 /*Defines */
-#define DEBUG 0
 
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
@@ -29,7 +28,16 @@ uint8_t tapState = 1; /**<A varaible that represents the current tap state*/
 uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a value of 0 or 1*/
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 int32_t sampleTempFlag = 0x0000;
-uint8_t buttonState = 1; /**<A variable that represents the current state of the button*/
+uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
+uint8_t dmaFlag = 0;
+
+/*Global 2*/
+//uint8_t ctrl = 0x29|0x40|0x80;
+uint8_t tx[7] = {0x29|0x40|0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+uint8_t rx[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+uint8_t const* txptr = &tx[0];
+uint8_t* rxptr = &rx[0];
 
 //Data Variables decleration
 float temperature;
@@ -83,9 +91,7 @@ int main (void) {
 	initTempADC(); //Enable ADC for temp sensor
 	initTim3(); //Enable Tim3 at 100Hz
 	initACC(); //Enable the accelerometer
-	#if !DEBUG
 	initDMAACC(accValues);
-	#endif
 	initEXTIACC(); //Enable tap interrupts via exti0
 	initEXTIButton(); //Enable button interrupts via exti1
 	
@@ -131,8 +137,8 @@ void temperatureThread(void const *argument){
 void accelerometerThread(void const * argument){
 
 	//int32_t accValues[3]; //To retrieve the accelerometer values
-	uint8_t ctrl = 0x80;
-	
+
+
 	//Create structures for moving average filter
 	AVERAGE_DATA_TYPEDEF dataX;
 	AVERAGE_DATA_TYPEDEF dataY;
@@ -143,25 +149,25 @@ void accelerometerThread(void const * argument){
 	movingAverageInit(&dataY);
 	movingAverageInit(&dataZ);
 	
-	#if !DEBUG
-	GPIO_ResetBits(GPIOE, (uint16_t)0x0008);
+	GPIO_ResetBits(GPIOE, (uint16_t)0x0008); //Lower CS line
 	//stream0 is rx, stream3 is tx
-	DMA2_Stream0->M0AR = (uint32_t) accValues;
-	DMA2_Stream3->M0AR = (uint32_t) ctrl;
-	DMA2_Stream0->NDTR = 6;
-	DMA2_Stream3->NDTR = 1;
+	//DMA2_Stream0->M0AR = (uint32_t) accValues;
+    DMA2_Stream0->M0AR = (uint32_t)rxptr;
+	//DMA2_Stream3->M0AR = (uint32_t) ctrl;
+    DMA2_Stream3->M0AR = (uint32_t)txptr;
+	DMA2_Stream0->NDTR = 7;
+	DMA2_Stream3->NDTR = 7;
 	DMA2_Stream0->CR |= DMA_SxCR_EN;
 	DMA2_Stream3->CR |= DMA_SxCR_EN;
-	#endif
 	
 	//Real-time processing of data
 	while(1){
 		
 		osSignalWait(sampleACCFlag, 0); //Wait to sample
-		
-		#if DEBUG
-		LIS302DL_ReadACC(accValues); //Read from ACC	HOWEVER THIS HAPPENS NOW PLACE HOLDER		
-		#endif
+		if(dmaFlag){
+
+		//Read from ACC	HOWEVER THIS HAPPENS NOW PLACE HOLDER		
+
 		//Filter ACC values
 		osSemaphoreWait(accId, osWaitForever); //Have exclusive access to temperature
 		
@@ -172,7 +178,13 @@ void accelerometerThread(void const * argument){
 		accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
 		
 		osSemaphoreRelease(accId); //Release exclusive access
+        
+        dmaFlag = 0;
+        DMA2_Stream0->CR |= DMA_SxCR_EN;
+        DMA2_Stream3->CR |= DMA_SxCR_EN;
+            
 		osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
+        }
 	}
 }
 
@@ -219,7 +231,7 @@ void displayUI(void)
 						displayBoardMovement(acceleration, previousValues, accelerationTotals); //display the boards movement
 					break;
 				}
-			}
+		}
 	}
 }
 
@@ -249,9 +261,7 @@ void EXTI1_IRQHandler(void)
 */
 void TIM3_IRQHandler(void)
 {
-	#if DEBUG
 	osSignalSet(aThread, sampleACCFlag);
-	#endif
 	
 	if(sampleTempCounter == 5){
 		osSignalSet(tThread, sampleTempFlag);
@@ -268,13 +278,12 @@ void TIM3_IRQHandler(void)
 *@brief An interrupt handler for DMA2_Stream0
 *@retval None
 */
-#if !DEBUG
 void DMA2_Stream0_IRQHandler(void)
 {
-
-	osSignalSet(aThread, sampleACCFlag);					//Set flag for accelerometer sampling
+	dmaFlag = 1;				//Set flag for accelerometer sampling
 	
 	DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); //Clear the flag for transfer complete
-
+    GPIO_SetBits(GPIOE, (uint16_t)0x0008);
+    DMA2_Stream0->CR |= 0; //Disable DMA
+	DMA2_Stream3->CR |= 0;
 }
-#endif
