@@ -148,7 +148,7 @@ void initDMAACC(int32_t* accValuesDestination)
 	DMA_InitStruct.DMA_PeripheralBaseAddr = (uint32_t) &SPI1->DR; //Must be a uint32
 	//DMA_InitStruct.DMA_Memory0BaseAddr = (uint32_t) &accValuesDestination; //Variable where the data will be stored
 	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralToMemory;
-	DMA_InitStruct.DMA_BufferSize = 8; //Size of buffer
+	DMA_InitStruct.DMA_BufferSize = 7; //Size of buffer
 	DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;
 	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
