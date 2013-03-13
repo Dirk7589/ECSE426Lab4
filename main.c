@@ -30,12 +30,12 @@ uint8_t sampleACCFlag = 0; /**<A flag variable for sampling, restricted to a val
 uint8_t sampleTempCounter = 0; /**<A counter variable for sampling the temperature sensor */
 int32_t sampleTempFlag = 0x0000;
 uint8_t buttonState = 0; /**<A variable that represents the current state of the button*/
-uint8_t dmaFlag = 0;
+uint8_t dmaFlag = 0; /**<A flag variable that represent the DMA flag*/
 
 /*Global 2*/
-//uint8_t ctrl = 0x29|0x40|0x80;
-uint8_t tx[7] = {0x29|0x40|0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-uint8_t rx[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+uint8_t tx[7] = {0x29|0x40|0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; /**<Transmission buffer for DMA*/
+uint8_t rx[7] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; /**<Receive buffer for DMA*/
 
 uint8_t const* txptr = &tx[0];
 uint8_t* rxptr = &rx[0];
@@ -207,7 +207,7 @@ void accelerometerThread(void const * argument){
             DMA2_Stream0->CR |= DMA_SxCR_EN;
                 
             osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
-            }
+        }
 	}
 }
 
