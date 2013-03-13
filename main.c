@@ -180,9 +180,7 @@ void accelerometerThread(void const * argument){
                 out++;
             }		
 
-            //Filter ACC values
-            
-            
+            //Filter ACC values           
             calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
             
             accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
@@ -190,8 +188,6 @@ void accelerometerThread(void const * argument){
             accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
             
             osSemaphoreRelease(accId); //Release exclusive access
-            
-            dmaFlag = 0;
             
             GPIO_ResetBits(GPIOE, (uint16_t)0x0008); //Lower CS line
             //stream0 is rx, stream3 is tx
@@ -205,7 +201,8 @@ void accelerometerThread(void const * argument){
             DMA2_Stream3->NDTR = 7;
             DMA2_Stream3->CR |= DMA_SxCR_EN;
             DMA2_Stream0->CR |= DMA_SxCR_EN;
-                
+            
+            dmaFlag = 0; //Clear DMA flag0
             osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
         }
 	}
@@ -264,8 +261,10 @@ void displayUI(void)
 */
 void EXTI0_IRQHandler(void)
 {
+    if(EXTI_GetITStatus(EXTI_Line0) != RESET){
 	buttonState = 1 - buttonState;	//Change the current tap state
 	EXTI_ClearITPendingBit(EXTI_Line0);	//Clear the EXTI0 interrupt flag
+    }
 }
 
 /**
@@ -274,8 +273,10 @@ void EXTI0_IRQHandler(void)
 */
 void EXTI1_IRQHandler(void)
 {
+    if(EXTI_GetITStatus(EXTI_Line1) != RESET){
 	tapState = 1 - tapState;	//Change the current tap state
 	EXTI_ClearITPendingBit(EXTI_Line1);	//Clear the EXTI0 interrupt flag
+    }
 }
 
 /**
