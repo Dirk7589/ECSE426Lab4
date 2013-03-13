@@ -20,7 +20,7 @@
 #include "common.h"
 
 /*Defines */
-
+#define DEBUG 1y
 #define MAX_COUNTER_VALUE 5; //Maximum value for the temperature sensor to sample at 20Hz
 #define USER_BTN 0x0001 /*!<Defines the bit location of the user button*/
 
@@ -136,10 +136,7 @@ void temperatureThread(void const *argument){
 	
 
 void accelerometerThread(void const * argument){
-
-	//int32_t accValues[3]; //To retrieve the accelerometer values
-
-
+    
 	//Create structures for moving average filter
 	AVERAGE_DATA_TYPEDEF dataX;
 	AVERAGE_DATA_TYPEDEF dataY;
@@ -168,6 +165,20 @@ void accelerometerThread(void const * argument){
 	while(1){
 		
 		osSignalWait(sampleACCFlag, 0); //Wait to sample
+        #if DEBUG
+        LIS302DL_ReadACC(accValues);
+        osSemaphoreWait(accId, osWaitForever); //Have exclusive access to temperature
+        calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
+            
+        accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
+        accCorrectedValues[1] = movingAverage(accCorrectedValues[1], &dataY);
+        accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
+        
+        osSemaphoreRelease(accId); //Release exclusive access
+        osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
+        #endif
+        
+        #if !DEBUG
 		if(dmaFlag){
 
             uint8_t i;
@@ -180,7 +191,9 @@ void accelerometerThread(void const * argument){
                 out++;
             }		
 
-            //Filter ACC values           
+            //Filter ACC values
+            
+            
             calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
             
             accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
@@ -205,6 +218,7 @@ void accelerometerThread(void const * argument){
             dmaFlag = 0; //Clear DMA flag0
             osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
         }
+        #endif
 	}
 }
 
