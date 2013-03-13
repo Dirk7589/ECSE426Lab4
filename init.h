@@ -54,10 +54,9 @@ void initTim3(void);
 
 /**
 *@brief A function that intializes DMA for use with the accelerometer.
-*@param[in] accValuesDestination The base destination address for the transfer
 *@retval None
 */
-void initDMAACC(int32_t* accValuesDestination);
+void initDMAACC(void);
 
 /**
 *@brief A function that enables EXTI for the button

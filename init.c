@@ -130,13 +130,12 @@ void initTim3(void)
 
 /**
 *@brief A function that intializes DMA for use with the accelerometer.
-*@param[in] accValuesDestination The base destination address for the transfer
 *@retval None
 *@Warning initACC must be called before hand in order to configure SPI correctly
 */
-void initDMAACC(int32_t* accValuesDestination)
+void initDMAACC(void)
 {
-	RCC_AHB1PeriphResetCmd(RCC_AHB1Periph_DMA2, ENABLE); //Enable peripheral clock for DMA2
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE); //Enable peripheral clock for DMA2
 	
 	DMA_InitTypeDef DMA_InitStruct; //Create DMA init struct
 	NVIC_InitTypeDef NVIC_Struct; //Create intialization struct for NVIC
@@ -170,15 +169,17 @@ void initDMAACC(int32_t* accValuesDestination)
 	NVIC_Struct.NVIC_IRQChannelSubPriority =0; //Set sub prioirity
 	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
 	
-	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct
+	
 	
 	DMA_ITConfig(DMA2_Stream0, DMA_IT_TC, ENABLE); //Enable the corresponding NVIC interupt
 	
+    NVIC_Init(&NVIC_Struct); //Setup NVIC with struct
+    
 	DMA_Cmd(DMA2_Stream0, ENABLE); //Enable DMA for RX
 	DMA_Cmd(DMA2_Stream3, ENABLE); //Enable DMA for TX
 	
-	SPI_DMACmd(SPI1, SPI_DMAReq_Rx, ENABLE); //Start Rx dma on SPI1
-	SPI_DMACmd(SPI1, SPI_DMAReq_Tx, ENABLE); //Start Tx dma on SPI1
+	SPI_DMACmd(SPI1, SPI_DMAReq_Rx | SPI_DMAReq_Tx, ENABLE); //Start Rx dma on SPI1
+	//SPI_DMACmd(SPI1, SPI_DMAReq_Tx, ENABLE); //Start Tx dma on SPI1
 	
 }
 
@@ -207,7 +208,7 @@ void initEXTIButton(void)
 	
 	NVIC_Struct.NVIC_IRQChannel = EXTI0_IRQn; //Select EXTI0
 	NVIC_Struct.NVIC_IRQChannelPreemptionPriority = 0; //Set preemption priority
-	NVIC_Struct.NVIC_IRQChannelSubPriority = BUTTON_PRIORITY; //Set sub prioirity
+	NVIC_Struct.NVIC_IRQChannelSubPriority = 0; //Set sub prioirity
 	NVIC_Struct.NVIC_IRQChannelCmd = ENABLE; //Enable NIVC
 	
 	NVIC_Init(&NVIC_Struct); //Setup NVIC with struct//Configure the NVIC for use with EXTI
