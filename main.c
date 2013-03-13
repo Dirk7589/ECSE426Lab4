@@ -11,6 +11,7 @@
 #include "arm_math.h"
 #include "stm32f4xx.h"
 #include "cmsis_os.h"
+#include <stdio.h>
 #include "init.h"
 #include "initACC.h"
 #include "moving_average.h"
@@ -91,7 +92,7 @@ int main (void) {
 	initTempADC(); //Enable ADC for temp sensor
 	initTim3(); //Enable Tim3 at 100Hz
 	initACC(); //Enable the accelerometer
-	initDMAACC(accValues);
+	initDMAACC();
 	initEXTIACC(); //Enable tap interrupts via exti0
 	initEXTIButton(); //Enable button interrupts via exti1
 	
@@ -151,40 +152,62 @@ void accelerometerThread(void const * argument){
 	
 	GPIO_ResetBits(GPIOE, (uint16_t)0x0008); //Lower CS line
 	//stream0 is rx, stream3 is tx
-	//DMA2_Stream0->M0AR = (uint32_t) accValues;
-    DMA2_Stream0->M0AR = (uint32_t)rxptr;
-	//DMA2_Stream3->M0AR = (uint32_t) ctrl;
-    DMA2_Stream3->M0AR = (uint32_t)txptr;
-	DMA2_Stream0->NDTR = 7;
-	DMA2_Stream3->NDTR = 7;
-	DMA2_Stream0->CR |= DMA_SxCR_EN;
-	DMA2_Stream3->CR |= DMA_SxCR_EN;
+
+    //DMA2_Stream0->M0AR = (uint32_t)rxptr;
+    DMA2_Stream0->NDTR = 7;
+    DMA2_Stream0->M0AR = (uint32_t)rx;
+
+    //DMA2_Stream3->M0AR = (uint32_t)txptr;
+    DMA2_Stream3->NDTR = 7;
+    DMA2_Stream3->M0AR = (uint32_t)tx;
 	
+    DMA2_Stream3->CR |= DMA_SxCR_EN;
+	DMA2_Stream0->CR |= DMA_SxCR_EN;
+
 	//Real-time processing of data
 	while(1){
 		
 		osSignalWait(sampleACCFlag, 0); //Wait to sample
 		if(dmaFlag){
 
-		//Read from ACC	HOWEVER THIS HAPPENS NOW PLACE HOLDER		
+            uint8_t i;
+            osSemaphoreWait(accId, osWaitForever); //Have exclusive access to temperature
+            int32_t* out = &accValues[0];
+            //Scale the values from DMA to the actual values
+            for(i=0; i<0x03; i++)
+            {
+                *out =(int32_t)(18 *  (int8_t)rx[2*i +1]);
+                out++;
+            }		
 
-		//Filter ACC values
-		osSemaphoreWait(accId, osWaitForever); //Have exclusive access to temperature
-		
-		calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
-		
-		accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
-		accCorrectedValues[1] = movingAverage(accCorrectedValues[1], &dataY);
-		accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
-		
-		osSemaphoreRelease(accId); //Release exclusive access
-        
-        dmaFlag = 0;
-        DMA2_Stream0->CR |= DMA_SxCR_EN;
-        DMA2_Stream3->CR |= DMA_SxCR_EN;
+            //Filter ACC values
             
-		osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
-        }
+            
+            calibrateACC(accValues, accCorrectedValues); //Calibrate the accelerometer	
+            
+            accCorrectedValues[0] = movingAverage(accCorrectedValues[0], &dataX);
+            accCorrectedValues[1] = movingAverage(accCorrectedValues[1], &dataY);
+            accCorrectedValues[2] = movingAverage(accCorrectedValues[2], &dataZ);
+            
+            osSemaphoreRelease(accId); //Release exclusive access
+            
+            dmaFlag = 0;
+            
+            GPIO_ResetBits(GPIOE, (uint16_t)0x0008); //Lower CS line
+            //stream0 is rx, stream3 is tx
+
+            DMA2_Stream0->M0AR = (uint32_t)rxptr;
+            //DMA2_Stream0->M0AR = (uint32_t)rx;
+
+            DMA2_Stream3->M0AR = (uint32_t)txptr;
+           // DMA2_Stream3->M0AR = (uint32_t)txp;
+            DMA2_Stream0->NDTR = 7;
+            DMA2_Stream3->NDTR = 7;
+            DMA2_Stream3->CR |= DMA_SxCR_EN;
+            DMA2_Stream0->CR |= DMA_SxCR_EN;
+                
+            osSignalClear(aThread, sampleACCFlag); //Clear the sample flag
+            }
 	}
 }
 
@@ -283,7 +306,9 @@ void DMA2_Stream0_IRQHandler(void)
 	dmaFlag = 1;				//Set flag for accelerometer sampling
 	
 	DMA_ClearFlag(DMA2_Stream0, DMA_FLAG_TCIF0); //Clear the flag for transfer complete
-    GPIO_SetBits(GPIOE, (uint16_t)0x0008);
+    DMA_ClearFlag(DMA2_Stream3, DMA_FLAG_TCIF3);
+    //DMA_ClearITPendingBit(DMA2_Stream0, DMA_IT_TCIF0);
+    GPIO_SetBits(GPIOE, (uint16_t)0x0008);  //Raise CS Line
     DMA2_Stream0->CR |= 0; //Disable DMA
 	DMA2_Stream3->CR |= 0;
 }
