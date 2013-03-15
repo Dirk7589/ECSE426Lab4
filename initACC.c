@@ -44,9 +44,9 @@ float XSensitivityNeg = 1.0114;
 void initACC(void)
 {
 		
-		uint8_t ctrl; //Variable used to set control registers
-		
-		//Enable the LIS302DL
+	uint8_t ctrl; //Variable used to set control registers
+	
+	//Enable the LIS302DL
     LIS302DL_InitTypeDef initStructACC; //Define structs
     
     initStructACC.Power_Mode = LIS302DL_LOWPOWERMODE_ACTIVE; //Turn low power mode on
@@ -60,8 +60,8 @@ void initACC(void)
 		//Enable interupts for Tap Detection for the LIS302DL
     LIS302DL_InterruptConfigTypeDef LIS302DL_InterruptConfigStruct; //Define struct
     
-		ctrl = 0x38; //Correct mask value for click interupt
-		LIS302DL_Write(&ctrl, LIS302DL_CTRL_REG3_ADDR, 1); //Configure control register for click interupt
+	ctrl = 0x38; //Correct mask value for click interupt
+	LIS302DL_Write(&ctrl, LIS302DL_CTRL_REG3_ADDR, 1); //Configure control register for click interupt
 	
     LIS302DL_InterruptConfigStruct.Latch_Request = LIS302DL_INTERRUPTREQUEST_NOTLATCHED; //Latch interupt request
     LIS302DL_InterruptConfigStruct.SingleClick_Axes = LIS302DL_CLICKINTERRUPT_Z_ENABLE; //Enable single click interupt for all 3 axes
@@ -69,22 +69,22 @@ void initACC(void)
     
     LIS302DL_InterruptConfig(&LIS302DL_InterruptConfigStruct); //Intialize the LIS302DL interupts behavior
 
-		//Set remaining properties of the click interupt not configured by LIS302DL_InterruptConfig
-		//They can be found in the LIS302DL data sheet section 7.
-		ctrl = 0xFF;
-		LIS302DL_Write(&ctrl, LIS302DL_CLICK_THSY_X_REG_ADDR, 1); //Setup minimum threshold for an interupt to occur
-		
-		ctrl = 0x0F;
-		LIS302DL_Write(&ctrl, LIS302DL_CLICK_THSZ_REG_ADDR, 1); //Setup minimum threshold for an interupt to occur
-		
-		ctrl = 0x03;
-		LIS302DL_Write(&ctrl, LIS302DL_CLICK_TIMELIMIT_REG_ADDR, 1); //Set time limit between interupt
-		
-		ctrl = 0xFA;
-		LIS302DL_Write(&ctrl, LIS302DL_CLICK_LATENCY_REG_ADDR, 1); //Set latency before interupt is tripped
-		
-		ctrl = 0xFF;
-		LIS302DL_Write(&ctrl, LIS302DL_CLICK_WINDOW_REG_ADDR, 1); //Set the window for latency and time limit.
+	//Set remaining properties of the click interupt not configured by LIS302DL_InterruptConfig
+	//They can be found in the LIS302DL data sheet section 7.
+	ctrl = 0xFF;
+	LIS302DL_Write(&ctrl, LIS302DL_CLICK_THSY_X_REG_ADDR, 1); //Setup minimum threshold for an interupt to occur
+	
+	ctrl = 0x0F;
+	LIS302DL_Write(&ctrl, LIS302DL_CLICK_THSZ_REG_ADDR, 1); //Setup minimum threshold for an interupt to occur
+	
+	ctrl = 0x03;
+	LIS302DL_Write(&ctrl, LIS302DL_CLICK_TIMELIMIT_REG_ADDR, 1); //Set time limit between interupt
+	
+	ctrl = 0xFA;
+	LIS302DL_Write(&ctrl, LIS302DL_CLICK_LATENCY_REG_ADDR, 1); //Set latency before interupt is tripped
+	
+	ctrl = 0xFF;
+	LIS302DL_Write(&ctrl, LIS302DL_CLICK_WINDOW_REG_ADDR, 1); //Set the window for latency and time limit.
 } 
 
 /**
@@ -239,28 +239,31 @@ void displayBoardMovement(float* accCorrectedValues, float* previousValues, floa
 {	
 	float accelerationDiff[2] = {0,0};
 
+	//calculate the change in acceleration
 	accelerationDiff[0] = accCorrectedValues[0] - previousValues[0];
 	accelerationDiff[1] = accCorrectedValues[1] - previousValues[1];
 	
+	//store the current values for use the next time this function is called
 	previousValues[0] = accCorrectedValues[0];
 	previousValues[1] = accCorrectedValues[1];
 
+	//If the change in acceleration is above a threshold vallue then add it to accelerationTotals
 	if(accelerationDiff[0] > MOVEMENT_THRESHOLD || accelerationDiff[0] < -MOVEMENT_THRESHOLD){//&& absDiff0 < 500){
 		accelerationTotals[0] = accelerationTotals[0] + accelerationDiff[0];
 	}
-	
 	if(accelerationDiff[1] > MOVEMENT_THRESHOLD || accelerationDiff[1] < -MOVEMENT_THRESHOLD){//&& absDiff1 < 500){
 		accelerationTotals[1] = accelerationTotals[1] + accelerationDiff[1];
 	}
 	
+	//reset accelerationTotals if its value is small
 	if(accelerationTotals[0] < MOVEMENT_THRESHOLD && accelerationTotals[0] > -MOVEMENT_THRESHOLD){
 		accelerationTotals[0] = 0;
 	}
-	
 	if(accelerationTotals[1] < MOVEMENT_THRESHOLD && accelerationTotals[1] > -MOVEMENT_THRESHOLD){
 		accelerationTotals[1] = 0;
 	}
 	
+	//reset accelerationTotals if the magnitude gets too large. This prevents run away.
 	if(accelerationTotals[0] > 1000 || accelerationTotals[0] < -1000){
 		accelerationTotals[0] =0;
 	}
